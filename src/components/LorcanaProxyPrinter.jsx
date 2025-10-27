@@ -646,9 +646,9 @@ export default function LorcanaProxyPrinter() {
                 </div>
                 <div className="text-center mb-4">
                     <h4 className="text-warning">
-                        Carte aggiunte: <span className="badge bg-warning text-white">{cards.length}</span>
+                        Carte aggiunte: <span className="badge bg-warning text-light">{cards.length}</span>
                     </h4>
-                    <small className="text-muted">Ogni pagina PDF conterrà 9 carte. Puoi aggiungere quante carte vuoi!</small>
+                    <small className="text-light muted-small">Ogni pagina PDF conterrà 9 carte. Puoi aggiungere quante carte vuoi!</small>
                 </div>
 
                 {/* Cards Grid */}

@@ -207,8 +207,8 @@ export default function LorcanaProxyPrinter() {
             const marginX = (pageWidthMM - totalGridWidth) / 2;
             const marginY = (pageHeightMM - totalGridHeight) / 2;
 
-            // Canvas temporaneo per la pagina A4 a 150 DPI
-            const DPI = 300;
+            // Canvas temporaneo per la pagina A4 a 600 DPI
+            const DPI = 600;
             const mmToPx = mm => Math.round(mm / 25.4 * DPI);
 
             // Funzione per caricare un'immagine con retry, più proxy di fallback e timeout

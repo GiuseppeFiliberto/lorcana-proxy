@@ -646,7 +646,7 @@ export default function LorcanaProxyPrinter() {
                 </div>
                 <div className="text-center mb-4">
                     <h4 className="text-warning">
-                        Carte aggiunte: <span className="badge bg-warning text-dark">{cards.length}</span>
+                        Carte aggiunte: <span className="badge bg-warning text-white">{cards.length}</span>
                     </h4>
                     <small className="text-muted">Ogni pagina PDF conterrà 9 carte. Puoi aggiungere quante carte vuoi!</small>
                 </div>
@@ -727,7 +727,7 @@ export default function LorcanaProxyPrinter() {
                     <h3 className="text-warning mb-3">📋 Istruzioni d'uso</h3>
                     <div className="row">
                         <div className="col-md-6">
-                            <ul className="list-unstyled">
+                            <ul className="list-unstyled muted-small">
                                 <li className="mb-2">✨ Cerca carte ufficiali dal database</li>
                                 <li className="mb-2">✨ Aggiungi quante carte vuoi usando ricerca, URL o upload</li>
                                 <li className="mb-2">✨ Le carte saranno disposte in una griglia 3x3 per pagina</li>
@@ -735,7 +735,7 @@ export default function LorcanaProxyPrinter() {
                             </ul>
                         </div>
                         <div className="col-md-6">
-                            <ul className="list-unstyled">
+                            <ul className="list-unstyled muted-small">
                                 <li className="mb-2">✨ Clicca su "Stampa Carte" per creare il file stampabile o generare un PDF</li>
                                 <li className="mb-2">✨ Il PDF mostrerà le carte in una griglia 3x3 per pagina</li>
                                 <li className="mb-2">✨ Puoi stampare direttamente dal PDF generato</li>

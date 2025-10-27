@@ -5,14 +5,14 @@
     /* slightly lighter surface for panels */
     --accent: #ffd166;
     --accent-2: #7b61ff;
-    --muted: rgba(255, 255, 255, 0.65);
-    --muted-2: rgba(255, 255, 255, 0.45);
+    --muted: rgba(255, 255, 255, 1);
+    --muted-2: rgba(255, 255, 255, 0.95);
     --card-bg: rgba(255, 255, 255, 0.03);
     --glass: rgba(255, 255, 255, 0.035);
     --success: #20c997;
     --danger: #ff6b6b;
     --radius: 12px;
-    --text: #e7eef8;
+    --text: #ffffff;
     --shadow-1: rgba(2, 6, 23, 0.6);
     --btn-shadow: 0 6px 22px rgba(11, 16, 32, 0.45);
     --muted-strong: rgba(255, 255, 255, 0.92);
@@ -84,19 +84,14 @@ body {
 /* Improve readable text colors across the app */
 .text-muted,
 .muted-small,
-.lead,
-.search-panel .form-control::placeholder {
-    color: var(--muted-2) !important;
-}
-
 .lead {
-    color: var(--muted-strong) !important;
+    color: var(--text) !important;
 }
 
 .cards-panel,
 .search-panel,
 .info-panel {
-    color: var(--muted-strong);
+    color: var(--text);
 }
 
 /* Alerts and failed lists should be easier to read */

@@ -158,7 +158,7 @@ export default function LorcanaProxyPrinter() {
                             disabled={cards.length === 0}
                             aria-label="Stampa tutte le carte aggiunte"
                         >
-                            🖨️ Stampa Carte
+                            Stampa Carte
                         </button>
                         <button
                             className="btn btn-lg custom btn-danger"
@@ -166,7 +166,7 @@ export default function LorcanaProxyPrinter() {
                             disabled={cards.length === 0}
                             aria-label="Cancella tutte le carte aggiunte"
                         >
-                            🗑️ Cancella Tutto
+                            Cancella Tutto
                         </button>
                         {pdfHook.isRendering && (
                             <button
@@ -174,7 +174,7 @@ export default function LorcanaProxyPrinter() {
                                 onClick={pdfHook.cancelRender}
                                 aria-label="Annulla generazione PDF"
                             >
-                                ⛔ Annulla
+                                Annulla
                             </button>
                         )}
                     </div>

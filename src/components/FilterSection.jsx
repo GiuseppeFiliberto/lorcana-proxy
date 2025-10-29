@@ -78,7 +78,7 @@ export default function FilterSection({
 
                 <div className="col-12 col-md-6 col-lg-3">
                     <CustomDropdown
-                        label="Tipo Carta"
+                        label="Tipo di Carta"
                         id="type"
                         value={filters.type}
                         onChange={setTypeFilter}

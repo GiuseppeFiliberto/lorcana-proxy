@@ -23,7 +23,7 @@ export default function SearchResults({
                         fontWeight: 600,
                         marginBottom: '0.25rem'
                     }}>
-                        📊 Risultati della Ricerca
+                        Risultati della Ricerca
                     </h5>
                     <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginBottom: 0 }}>
                         Mostrando {displayCount} di {searchResults.length} carte trovate
@@ -140,14 +140,14 @@ export default function SearchResults({
                                     e.target.style.transform = 'translateY(0)';
                                 }}
                             >
-                                📥 Carica altri ({searchResults.length - displayCount} rimanenti)
+                                Mostra altri ({searchResults.length - displayCount} rimanenti)
                             </button>
                         </div>
                     )}
                 </>
             ) : (
                 <div className="text-center py-5">
-                    <div style={{ fontSize: '56px', marginBottom: '1rem', opacity: 0.8 }}>🃏</div>
+                    <div style={{ fontSize: '56px', marginBottom: '1rem', opacity: 0.8 }}></div>
                     <h6 style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '1.05rem', fontWeight: 600 }}>
                         Nessuna carta trovata
                     </h6>

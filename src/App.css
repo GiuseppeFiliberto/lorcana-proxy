@@ -295,6 +295,8 @@ a:hover {
     backdrop-filter: blur(12px);
     margin-bottom: var(--spacing-xl);
     box-shadow: var(--shadow-2);
+    overflow: visible !important;
+    position: relative;
 }
 
 .search-row {
@@ -1008,7 +1010,7 @@ er Styling */
 }
 
 .custom-dropdown.open {
-    z-index: 1000;
+    z-index: 2000 !important;
 }
 
 .custom-dropdown-menu {
@@ -1024,7 +1026,7 @@ er Styling */
     backdrop-filter: blur(12px);
     max-height: 300px;
     overflow-y: auto;
-    z-index: 1001;
+    z-index: 2001 !important;
     animation: dropdownSlideIn 0.2s ease-out;
 }
 
@@ -1073,11 +1075,16 @@ er Styling */
 /* Ensure filter section has proper z-index */
 .filters-section {
     position: relative;
-    z-index: 100;
+    z-index: 200 !important;
 }
 
 /* Search results should be below filters */
 .search-results-section {
     position: relative;
     z-index: 10;
+}
+
+/* URL section should be below filters */
+.url-section {
+    /* No position or z-index to avoid stacking context */
 }

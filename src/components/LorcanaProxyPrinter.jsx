@@ -7,6 +7,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Header from './Header';
 import Instructions from './Instructions';
 import SearchBar from './SearchBar';
+import AddCardByUrl from './AddCardByUrl';
+import SectionDivider from './SectionDivider';
 import FilterSection from './FilterSection';
 import SearchResults from './SearchResults';
 import CardGrid from './CardGrid';
@@ -50,6 +52,18 @@ export default function LorcanaProxyPrinter() {
 
         setCards([...cards, newCard]);
         toast.success(`${cardData.name} aggiunta alla lista`);
+    };
+
+    const addCardFromUrl = (url) => {
+        const newCard = {
+            id: Date.now(),
+            src: url,
+            type: 'url',
+            name: 'Carta da URL'
+        };
+
+        setCards([...cards, newCard]);
+        toast.success('Carta aggiunta con successo!');
     };
 
     const removeCard = (cardId) => {
@@ -116,6 +130,21 @@ export default function LorcanaProxyPrinter() {
                                 onClose={() => searchHook.setShowResults(false)}
                             />
                         )}
+                    </div>
+
+                    <SectionDivider text="oppure" />
+
+                    {/* Add Card by URL Section */}
+                    <div style={{
+                        background: 'var(--glass-light)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: 'var(--radius-lg)',
+                        padding: 'var(--spacing-xl)',
+                        backdropFilter: 'blur(12px)',
+                        marginBottom: 'var(--spacing-xl)',
+                        boxShadow: 'var(--shadow-2)'
+                    }}>
+                        <AddCardByUrl onAddCard={addCardFromUrl} />
                     </div>
 
                     {/* Card Grid */}

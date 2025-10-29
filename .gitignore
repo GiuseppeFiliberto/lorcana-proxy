@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Documentation files (internal development)
+ARCHITECTURE.md
+REFACTORING_SUMMARY.md
+TESTING_CHECKLIST.md
+QUICK_START.md

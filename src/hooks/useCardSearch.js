@@ -106,6 +106,7 @@ export const useCardSearch = (searchQuery, filters) => {
             setSearchResults([]);
             setShowResults(false);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchQuery, filters.ink, filters.type, filters.cost, filters.set]);
 
     return {

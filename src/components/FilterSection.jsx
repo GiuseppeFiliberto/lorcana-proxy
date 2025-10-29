@@ -34,7 +34,10 @@ export default function FilterSection({
             background: 'linear-gradient(135deg, rgba(123, 97, 255, 0.08) 0%, rgba(255, 209, 102, 0.06) 100%)',
             borderRadius: '12px',
             border: '1px solid rgba(123, 97, 255, 0.15)',
-            marginBottom: '0.5rem'
+            marginBottom: '0.5rem',
+            overflow: 'visible',
+            position: 'relative',
+            zIndex: 200
         }}>
             <div className="d-flex align-items-center justify-content-between mb-3">
                 <h6 className="mb-0" style={{

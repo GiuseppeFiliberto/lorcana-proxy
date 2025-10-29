@@ -7,13 +7,16 @@
     --surface-light: #131a2f;
     --surface-lighter: #1a2847;
 
-    /* Primary Accent Colors */
-    --accent: #ffd166;
-    --accent-light: #ffe896;
-    --accent-dark: #e6b845;
-    --accent-2: #7b61ff;
-    --accent-2-light: #9d8fff;
-    --accent-2-dark: #6149d9;
+    /* Primary Accent Colors - Logo Theme */
+    --accent: #FFD166;
+    --accent-light: #FFE896;
+    --accent-dark: #E6B845;
+    --accent-2: #9B7EFF;
+    --accent-2-light: #B89FFF;
+    --accent-2-dark: #7B61D9;
+    --accent-3: #6B9FFF;
+    --accent-3-light: #8FB5FF;
+    --accent-3-dark: #5585E6;
 
     /* Status Colors */
     --success: #20c997;
@@ -167,15 +170,15 @@ a:hover {
 }
 
 .header-panel {
-    background: linear-gradient(135deg, rgba(255, 209, 102, 0.12), rgba(123, 97, 255, 0.08));
+    background: linear-gradient(135deg, rgba(155, 126, 255, 0.15), rgba(107, 159, 255, 0.12), rgba(255, 209, 102, 0.1));
     padding: var(--spacing-3xl) var(--spacing-2xl);
     border-radius: var(--radius-xl);
-    border: 1px solid rgba(255, 209, 102, 0.15);
+    border: 1px solid rgba(155, 126, 255, 0.25);
     text-align: center;
     position: relative;
     overflow: hidden;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 8px 32px rgba(255, 209, 102, 0.05);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 8px 32px rgba(155, 126, 255, 0.15), 0 0 60px rgba(107, 159, 255, 0.1);
     margin-bottom: var(--spacing-2xl);
 }
 
@@ -186,7 +189,7 @@ a:hover {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle at center, rgba(255, 209, 102, 0.1) 0%, transparent 60%);
+    background: radial-gradient(circle at center, rgba(155, 126, 255, 0.15) 0%, rgba(107, 159, 255, 0.08) 40%, transparent 70%);
     animation: rotate 20s linear infinite;
     pointer-events: none;
 }

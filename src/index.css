@@ -57,6 +57,18 @@ body {
   }
 }
 
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
 /* Utility animations */
 .fade-in {
   animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -68,19 +80,21 @@ body {
 
 /* Scrollbar styling for better visual consistency */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(26, 26, 46, 0.5);
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 209, 102, 0.3);
-  border-radius: 4px;
+  background: linear-gradient(135deg, #9B7EFF 0%, #6B9FFF 100%);
+  border-radius: 5px;
+  border: 2px solid rgba(26, 26, 46, 0.5);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 209, 102, 0.5);
+  background: linear-gradient(135deg, #FFD166 0%, #9B7EFF 100%);
 }

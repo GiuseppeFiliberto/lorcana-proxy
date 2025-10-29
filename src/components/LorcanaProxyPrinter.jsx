@@ -611,48 +611,77 @@ export default function LorcanaProxyPrinter() {
 
                 <div className="container py-4" style={{ position: 'relative', zIndex: 1 }}>
                     {/* Header */}
-                    <div className="header-panel">
-                        <h1 className="display-3 gradient-text mb-3 fw-bold">
-                            ✨Incanta Babbaluci <br />Proxy Printer✨
-                        </h1>
-                        <h2 className="h3 text-warning mb-3">Proxy Card Printer</h2>
-                        <p className="lead">
+                    <div className="header-panel" style={{ textAlign: 'center' }}>
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '1rem',
+                            marginBottom: '1.5rem'
+                        }}>
+                            <img
+                                src="/logo.png"
+                                alt="Gli Incantababbaluci Logo"
+                                style={{
+                                    width: '200px',
+                                    height: 'auto',
+                                    filter: 'drop-shadow(0 4px 12px rgba(123, 97, 255, 0.4))',
+                                    animation: 'float 3s ease-in-out infinite'
+                                }}
+                            />
+                            <h1 className="display-4 fw-bold" style={{
+                                background: 'linear-gradient(135deg, #FFD166 0%, #9B7EFF 50%, #6B9FFF 100%)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                backgroundClip: 'text',
+                                marginBottom: '0.5rem',
+                                textShadow: '0 0 30px rgba(155, 126, 255, 0.3)'
+                            }}>
+                                Proxy Printer
+                            </h1>
+                        </div>
+                        <p className="lead" style={{
+                            color: 'rgba(255, 255, 255, 0.85)',
+                            fontSize: '1.1rem'
+                        }}>
                             Crea e stampa le tue carte proxy personalizzate
                         </p>
                     </div>
 
                     {/* Instructions */}
                     <div style={{
-                        background: 'linear-gradient(135deg, rgba(32, 201, 151, 0.1) 0%, rgba(123, 97, 255, 0.08) 100%)',
-                        border: '1px solid rgba(32, 201, 151, 0.3)',
-                        borderRadius: '12px',
-                        padding: '1.25rem',
+                        background: 'linear-gradient(135deg, rgba(155, 126, 255, 0.15) 0%, rgba(107, 159, 255, 0.1) 100%)',
+                        border: '1px solid rgba(155, 126, 255, 0.3)',
+                        borderRadius: '16px',
+                        padding: '1.5rem',
                         marginBottom: '2rem',
-                        backdropFilter: 'blur(8px)'
+                        backdropFilter: 'blur(10px)',
+                        boxShadow: '0 4px 20px rgba(155, 126, 255, 0.15)'
                     }}>
                         <h5 style={{
-                            color: '#20c997',
+                            color: '#FFD166',
                             marginBottom: '1rem',
-                            fontSize: '1.1rem',
-                            fontWeight: 600,
+                            fontSize: '1.15rem',
+                            fontWeight: 700,
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '0.5rem'
+                            gap: '0.5rem',
+                            textShadow: '0 2px 8px rgba(255, 209, 102, 0.3)'
                         }}>
                             📖 Come funziona
                         </h5>
-                        <div style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                        <div style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.95rem', lineHeight: '1.7' }}>
                             <p style={{ marginBottom: '0.75rem' }}>
-                                <strong>1.</strong> Cerca le carte usando il nome o i filtri avanzati (inchiostro, tipo, costo, set)
+                                <strong style={{ color: '#9B7EFF' }}>1.</strong> Cerca le carte usando il nome o i filtri avanzati (inchiostro, tipo, costo, set)
                             </p>
                             <p style={{ marginBottom: '0.75rem' }}>
-                                <strong>2.</strong> Clicca sulle carte nei risultati per aggiungerle alla lista
+                                <strong style={{ color: '#9B7EFF' }}>2.</strong> Clicca sulle carte nei risultati per aggiungerle alla lista
                             </p>
                             <p style={{ marginBottom: '0.75rem' }}>
-                                <strong>3.</strong> Quando hai finito, clicca "Stampa Carte" per generare il PDF
+                                <strong style={{ color: '#9B7EFF' }}>3.</strong> Quando hai finito, clicca "Stampa Carte" per generare il PDF
                             </p>
-                            <p style={{ marginBottom: 0, fontSize: '0.9rem', color: 'rgba(255, 209, 102, 0.9)' }}>
-                                💡 <em>Ogni pagina PDF contiene 9 carte in formato A4, pronte per la stampa!</em>
+                            <p style={{ marginBottom: 0, fontSize: '0.9rem', color: '#FFD166', fontWeight: 500 }}>
+                                ✨ <em>Ogni pagina PDF contiene 9 carte in formato A4, pronte per la stampa!</em>
                             </p>
                         </div>
                     </div>

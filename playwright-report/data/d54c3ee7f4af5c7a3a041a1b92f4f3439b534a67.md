@@ -1,0 +1,96 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - heading "✨Incanta Babbaluci Proxy Printer✨" [level=1] [ref=e8]:
+          - text: ✨Incanta Babbaluci
+          - text: Proxy Printer✨
+        - heading "Proxy Card Printer" [level=2] [ref=e9]
+        - paragraph [ref=e10]: Crea e stampa le tue carte proxy personalizzate
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - heading "🔍 Cerca Carte" [level=5] [ref=e13]
+          - generic [ref=e15]:
+            - textbox "Inserisci il nome della carta" [ref=e16]
+            - button "🔄 Ricerca..." [disabled]
+        - generic [ref=e17]:
+          - generic [ref=e18]:
+            - heading "🎯 Filtri Avanzati" [level=6] [ref=e19]
+            - generic [ref=e20]: 1 attivo
+          - generic [ref=e21]:
+            - generic [ref=e22]:
+              - generic [ref=e23]: 💧 Inchiostro
+              - combobox [ref=e24] [cursor=pointer]:
+                - option "Tutti gli inchiostri"
+                - option "🟠 Amber"
+                - option "💜 Amethyst"
+                - option "💚 Emerald"
+                - option "❤️ Ruby" [selected]
+                - option "💙 Sapphire"
+                - option "⚫ Steel"
+            - generic [ref=e25]:
+              - generic [ref=e26]: 🎴 Tipo Carta
+              - combobox [ref=e27] [cursor=pointer]:
+                - option "Tutti i tipi" [selected]
+                - option "👤 Glimmer"
+                - option "⚡ Action"
+                - option "🎁 Item"
+                - option "🏰 Location"
+            - generic [ref=e28]:
+              - generic [ref=e29]: 💰 Costo
+              - combobox [ref=e30] [cursor=pointer]:
+                - option "Tutti i costi" [selected]
+                - option "0"
+                - option "1"
+                - option "2"
+                - option "3"
+                - option "4"
+                - option "5"
+                - option "6"
+                - option "7+"
+            - generic [ref=e31]:
+              - generic [ref=e32]: 📦 Set
+              - combobox [ref=e33] [cursor=pointer]:
+                - option "Tutti i set" [selected]
+                - option "1 - The First Chapter"
+                - option "2 - Rise of the Floodborn"
+                - option "3 - Into the Inklands"
+                - option "4 - Ursula's Return"
+                - option "5 - Shimmering Skies"
+                - option "6 - Azurite Sea"
+                - option "7 - Archazia's Island"
+                - option "8 - Reign of Jafar"
+                - option "9 - Fabled"
+                - option "10 - Whispers in the Well"
+            - button "🔄 Ripristina Filtri" [ref=e35] [cursor=pointer]
+      - generic [ref=e36]:
+        - separator [ref=e37]
+        - generic [ref=e38]: oppure
+    - generic [ref=e40]: Nessuna pagina
+    - generic [ref=e41]:
+      - 'heading "Carte aggiunte: 0" [level=4] [ref=e42]':
+        - text: "Carte aggiunte:"
+        - generic [ref=e43]: "0"
+      - text: Ogni pagina PDF conterrà 9 carte. Puoi aggiungere quante carte vuoi!
+    - generic [ref=e45]:
+      - button "Stampa tutte le carte aggiunte" [disabled]: 🖨️ Stampa Carte
+      - button "Cancella tutte le carte aggiunte" [disabled]: 🗑️ Cancella Tutto
+    - generic [ref=e46]:
+      - heading "📋 Istruzioni d'uso" [level=3] [ref=e47]
+      - generic [ref=e48]:
+        - list [ref=e50]:
+          - listitem [ref=e51]: ✨ Cerca carte ufficiali dal database
+          - listitem [ref=e52]: ✨ Aggiungi quante carte vuoi usando ricerca, URL o upload
+          - listitem [ref=e53]: ✨ Le carte saranno disposte in una griglia 3x3 per pagina
+          - listitem [ref=e54]: ✨ Anteprima delle carte aggiunte sotto
+        - list [ref=e56]:
+          - listitem [ref=e57]: ✨ Clicca su "Stampa Carte" per creare il file stampabile o generare un PDF
+          - listitem [ref=e58]: ✨ Il PDF mostrerà le carte in una griglia 3x3 per pagina
+          - listitem [ref=e59]: ✨ Puoi stampare direttamente dal PDF generato
+          - listitem [ref=e60]: ✨ Rimuovi singole carte con il pulsante ×
+          - listitem [ref=e61]: ✨ Se aggiungi più di 9 carte, il PDF avrà più pagine!
+  - region "Notifications Alt+T"
+```

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 // jsPDF will be lazy-loaded inside generatePDF to reduce initial bundle size
 import { ToastContainer, toast } from 'react-toastify';
@@ -19,6 +19,12 @@ export default function LorcanaProxyPrinter() {
     const currentFetchController = useRef(null);
     const [failedImages, setFailedImages] = useState([]);
     const [pdfReadyUrl, setPdfReadyUrl] = useState(null);
+    // Filter states
+    const [inkFilter, setInkFilter] = useState('');
+    const [typeFilter, setTypeFilter] = useState('');
+    const [costFilter, setCostFilter] = useState('');
+    const [setFilter, setSetFilter] = useState('');
+    const [displayCount, setDisplayCount] = useState(24);
 
     const corsProxyUrl = (proxyPrefix, url) => {
         // proxyPrefix should include trailing separator if required
@@ -32,8 +38,26 @@ export default function LorcanaProxyPrinter() {
         'https://thingproxy.freeboard.io/fetch/'
     ];
 
+    // Auto-trigger search when filters or search query change
+    useEffect(() => {
+        const hasFilters = inkFilter || typeFilter || costFilter || setFilter;
+        const hasQuery = searchQuery.trim();
+
+        if (hasFilters || hasQuery) {
+            // Debounce the search to avoid too many API calls
+            const timer = setTimeout(() => {
+                searchCards();
+            }, 300);
+            return () => clearTimeout(timer);
+        } else {
+            // No filters and no query - clear results
+            setSearchResults([]);
+            setShowResults(false);
+        }
+    }, [searchQuery, inkFilter, typeFilter, costFilter, setFilter]);
+
     const searchCards = async () => {
-        if (!searchQuery.trim()) {
+        if (!searchQuery.trim() && !inkFilter && !typeFilter && !costFilter && !setFilter) {
             setSearchResults([]);
             setShowResults(false);
             return;
@@ -41,11 +65,75 @@ export default function LorcanaProxyPrinter() {
 
         setIsSearching(true);
         try {
-            const response = await fetch(`https://api.lorcast.com/v0/cards/search?q=${encodeURIComponent(searchQuery)}`);
+            // If filters are active but no search query, use a wildcard to fetch broad results for filtering
+            const queryParam = searchQuery.trim() || 'a'; // Use 'a' instead of '*' as it's more likely to work
+            const response = await fetch(`https://api.lorcast.com/v0/cards/search?q=${encodeURIComponent(queryParam)}`);
             if (response.ok) {
                 const data = await response.json();
-                // L'API restituisce i risultati all'interno dell'oggetto 'results'
-                setSearchResults(data.results || []);
+                let results = data.results || [];
+
+
+
+                // Apply client-side filtering based on active filters
+                if (inkFilter) {
+                    results = results.filter(card => {
+                        // Check multiple possible field names for color/ink
+                        const colors = card.color_identity || card.colors || card.ink || card.color || [];
+                        const colorStr = Array.isArray(colors) ? colors.join(',') : String(colors);
+                        return colorStr.toLowerCase().includes(inkFilter.toLowerCase());
+                    });
+                }
+                if (typeFilter) {
+                    results = results.filter(card => {
+                        const typeLine = card.type_line || card.type || card.card_type || '';
+                        const typeStr = String(typeLine || '');
+                        return typeStr.toLowerCase().includes(typeFilter.toLowerCase());
+                    });
+                }
+                if (costFilter) {
+                    const cost = parseInt(costFilter);
+                    if (costFilter === '7') {
+                        results = results.filter(card => {
+                            const cardCost = parseInt(card.mana_cost || card.cost || card.ink_cost || 0);
+                            return !isNaN(cardCost) && cardCost >= 7;
+                        });
+                    } else {
+                        results = results.filter(card => {
+                            const cardCost = parseInt(card.mana_cost || card.cost || card.ink_cost || 0);
+                            return !isNaN(cardCost) && cardCost === cost;
+                        });
+                    }
+                }
+                if (setFilter) {
+                    results = results.filter(card => {
+                        // Handle nested set object structure
+                        const setObj = card.set || {};
+                        const setCode = String(setObj.code || card.set_code || '');
+                        const setName = String(setObj.name || card.set_name || '');
+                        const setId = String(setObj.id || '');
+
+                        // Check for exact set number match (e.g., "10" should only match set 10)
+                        // The set code typically follows pattern like "1", "2", "10", etc.
+                        // We need exact match on the set number to avoid "1" matching "10"
+                        const filterNum = setFilter.trim();
+
+                        // Try exact match on set code first
+                        if (setCode === filterNum) return true;
+
+                        // Try exact match on set ID
+                        if (setId === filterNum) return true;
+
+                        // For set name, check if it starts with the number followed by space or dash
+                        // This handles cases like "10 - Whispers in the Well"
+                        const namePattern = new RegExp(`^${filterNum}[\\s\\-]`, 'i');
+                        if (namePattern.test(setName)) return true;
+
+                        return false;
+                    });
+                }
+
+                setSearchResults(results);
+                setDisplayCount(24);
                 setShowResults(true);
             } else {
                 console.error('Errore nella ricerca:', response.status);
@@ -60,15 +148,24 @@ export default function LorcanaProxyPrinter() {
     };
 
     const addCardFromSearch = (cardData) => {
+        const imageUrl = cardData.image_uris?.digital?.normal ||
+            cardData.image_uris?.normal ||
+            cardData.image_url ||
+            cardData.image;
+
+        if (!imageUrl) {
+            toast.error('Immagine della carta non disponibile');
+            return;
+        }
+
         const newCard = {
             id: Date.now(),
-            src: cardData.image_uris.digital.normal, // Salva l'URL originale, non proxato
+            src: imageUrl, // Salva l'URL originale, non proxato
             type: 'search',
             name: cardData.name,
-            set: cardData.set.name
+            set: cardData.set?.name || cardData.set_name || 'Unknown Set'
         };
         setCards([...cards, newCard]);
-        setSearchQuery('');
         toast.success(`${cardData.name} aggiunta alla lista`);
     };
 
@@ -131,6 +228,11 @@ export default function LorcanaProxyPrinter() {
         setSearchQuery('');
         setSearchResults([]);
         setShowResults(false);
+        setInkFilter('');
+        setTypeFilter('');
+        setCostFilter('');
+        setSetFilter('');
+        setDisplayCount(24);
     };
 
     const cancelRender = () => {
@@ -519,6 +621,42 @@ export default function LorcanaProxyPrinter() {
                         </p>
                     </div>
 
+                    {/* Instructions */}
+                    <div style={{
+                        background: 'linear-gradient(135deg, rgba(32, 201, 151, 0.1) 0%, rgba(123, 97, 255, 0.08) 100%)',
+                        border: '1px solid rgba(32, 201, 151, 0.3)',
+                        borderRadius: '12px',
+                        padding: '1.25rem',
+                        marginBottom: '2rem',
+                        backdropFilter: 'blur(8px)'
+                    }}>
+                        <h5 style={{
+                            color: '#20c997',
+                            marginBottom: '1rem',
+                            fontSize: '1.1rem',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}>
+                            📖 Come funziona
+                        </h5>
+                        <div style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                            <p style={{ marginBottom: '0.75rem' }}>
+                                <strong>1.</strong> Cerca le carte usando il nome o i filtri avanzati (inchiostro, tipo, costo, set)
+                            </p>
+                            <p style={{ marginBottom: '0.75rem' }}>
+                                <strong>2.</strong> Clicca sulle carte nei risultati per aggiungerle alla lista
+                            </p>
+                            <p style={{ marginBottom: '0.75rem' }}>
+                                <strong>3.</strong> Quando hai finito, clicca "Stampa Carte" per generare il PDF
+                            </p>
+                            <p style={{ marginBottom: 0, fontSize: '0.9rem', color: 'rgba(255, 209, 102, 0.9)' }}>
+                                💡 <em>Ogni pagina PDF contiene 9 carte in formato A4, pronte per la stampa!</em>
+                            </p>
+                        </div>
+                    </div>
+
                     {/* Search Section */}
                     <div className="search-panel">
                         {/* Ricerca Carte */}
@@ -538,7 +676,7 @@ export default function LorcanaProxyPrinter() {
                                     <button
                                         className="btn btn-lg btn-accent"
                                         onClick={searchCards}
-                                        disabled={!searchQuery.trim() || isSearching}
+                                        disabled={(!searchQuery.trim() && !inkFilter && !typeFilter && !costFilter && !setFilter) || isSearching}
                                     >
                                         {isSearching ? '🔄 Ricerca...' : '🔍 Cerca'}
                                     </button>
@@ -546,78 +684,346 @@ export default function LorcanaProxyPrinter() {
                             </div>
                         </div>
 
+                        {/* Filters Section */}
+                        {(() => {
+                            const activeFiltersCount = (inkFilter ? 1 : 0) + (typeFilter ? 1 : 0) + (costFilter ? 1 : 0) + (setFilter ? 1 : 0);
+                            return (
+                                <>
+                                    <div style={{
+                                        marginTop: '1.5rem',
+                                        padding: '1rem',
+                                        background: 'linear-gradient(135deg, rgba(123, 97, 255, 0.08) 0%, rgba(255, 209, 102, 0.06) 100%)',
+                                        borderRadius: '12px',
+                                        border: '1px solid rgba(123, 97, 255, 0.15)',
+                                        marginBottom: '0.5rem'
+                                    }}>
+                                        <div className="d-flex align-items-center justify-content-between mb-3">
+                                            <h6 className="mb-0" style={{ color: 'var(--accent-light)', fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+                                                🎯 Filtri Avanzati
+                                            </h6>
+                                            {activeFiltersCount > 0 && (
+                                                <span style={{
+                                                    background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%)',
+                                                    color: 'var(--bg-1)',
+                                                    padding: '0.25rem 0.75rem',
+                                                    borderRadius: '20px',
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: 600
+                                                }}>
+                                                    {activeFiltersCount} attivo{activeFiltersCount !== 1 ? 'i' : ''}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="row mt-3 g-3">
+                                            <div className="col-12 col-md-6 col-lg-3">
+                                                <label className="form-label text-light" style={{ fontSize: '0.95rem', fontWeight: 600 }}> Colori</label>
+                                                <select
+                                                    className="form-select form-select-lg"
+                                                    value={inkFilter}
+                                                    onChange={(e) => setInkFilter(e.target.value)}
+                                                    style={{
+                                                        background: inkFilter ? 'rgba(255, 209, 102, 0.15)' : 'rgba(255, 255, 255, 0.08)',
+                                                        color: '#fff',
+                                                        borderColor: inkFilter ? 'rgba(255, 209, 102, 0.4)' : 'rgba(255, 255, 255, 0.2)',
+                                                        padding: '0.75rem 1rem',
+                                                        borderRadius: '10px',
+                                                        border: '1.5px solid',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.3s ease',
+                                                        fontSize: '0.95rem'
+                                                    }}
+                                                >
+                                                    <option value="">Tutti gli inchiostri</option>
+                                                    <option value="Amber">🟠 Amber</option>
+                                                    <option value="Amethyst">💜 Amethyst</option>
+                                                    <option value="Emerald">💚 Emerald</option>
+                                                    <option value="Ruby">❤️ Ruby</option>
+                                                    <option value="Sapphire">💙 Sapphire</option>
+                                                    <option value="Steel">⚫ Steel</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="col-12 col-md-6 col-lg-3">
+                                                <label className="form-label text-light" style={{ fontSize: '0.95rem', fontWeight: 600 }}> Tipo di Carta</label>
+                                                <select
+                                                    className="form-select form-select-lg"
+                                                    value={typeFilter}
+                                                    onChange={(e) => setTypeFilter(e.target.value)}
+                                                    style={{
+                                                        background: typeFilter ? 'rgba(255, 209, 102, 0.15)' : 'rgba(255, 255, 255, 0.08)',
+                                                        color: '#fff',
+                                                        borderColor: typeFilter ? 'rgba(255, 209, 102, 0.4)' : 'rgba(255, 255, 255, 0.2)',
+                                                        padding: '0.75rem 1rem',
+                                                        borderRadius: '10px',
+                                                        border: '1.5px solid',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.3s ease',
+                                                        fontSize: '0.95rem'
+                                                    }}
+                                                >
+                                                    <option value="">Tutti i tipi</option>
+                                                    <option value="Glimmer">👤 Character</option>
+                                                    <option value="Action">⚡ Action - Song</option>
+                                                    <option value="Item">🎁 Item</option>
+                                                    <option value="Location">🏰 Location</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="col-12 col-md-6 col-lg-3">
+                                                <label className="form-label text-light" style={{ fontSize: '0.95rem', fontWeight: 600 }}> Costo</label>
+                                                <select
+                                                    className="form-select form-select-lg"
+                                                    value={costFilter}
+                                                    onChange={(e) => setCostFilter(e.target.value)}
+                                                    style={{
+                                                        background: costFilter ? 'rgba(255, 209, 102, 0.15)' : 'rgba(255, 255, 255, 0.08)',
+                                                        color: '#fff',
+                                                        borderColor: costFilter ? 'rgba(255, 209, 102, 0.4)' : 'rgba(255, 255, 255, 0.2)',
+                                                        padding: '0.75rem 1rem',
+                                                        borderRadius: '10px',
+                                                        border: '1.5px solid',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.3s ease',
+                                                        fontSize: '0.95rem'
+                                                    }}
+                                                >
+                                                    <option value="">Tutti i costi</option>
+                                                    <option value="0">0</option>
+                                                    <option value="1">1</option>
+                                                    <option value="2">2</option>
+                                                    <option value="3">3</option>
+                                                    <option value="4">4</option>
+                                                    <option value="5">5</option>
+                                                    <option value="6">6</option>
+                                                    <option value="7">7+</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="col-12 col-md-6 col-lg-3">
+                                                <label className="form-label text-light" style={{ fontSize: '0.95rem', fontWeight: 600 }}> Set</label>
+                                                <select
+                                                    className="form-select form-select-lg"
+                                                    value={setFilter}
+                                                    onChange={(e) => setSetFilter(e.target.value)}
+                                                    style={{
+                                                        background: setFilter ? 'rgba(255, 209, 102, 0.15)' : 'rgba(255, 255, 255, 0.08)',
+                                                        color: '#fff',
+                                                        borderColor: setFilter ? 'rgba(255, 209, 102, 0.4)' : 'rgba(255, 255, 255, 0.2)',
+                                                        padding: '0.75rem 1rem',
+                                                        borderRadius: '10px',
+                                                        border: '1.5px solid',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.3s ease',
+                                                        fontSize: '0.95rem'
+                                                    }}
+                                                >
+                                                    <option value="">Tutti i set</option>
+                                                    <option value="1">1 - The First Chapter</option>
+                                                    <option value="2">2 - Rise of the Floodborn</option>
+                                                    <option value="3">3 - Into the Inklands</option>
+                                                    <option value="4">4 - Ursula's Return</option>
+                                                    <option value="5">5 - Shimmering Skies</option>
+                                                    <option value="6">6 - Azurite Sea</option>
+                                                    <option value="7">7 - Archazia's Island</option>
+                                                    <option value="8">8 - Reign of Jafar</option>
+                                                    <option value="9">9 - Fabled</option>
+                                                    <option value="10">10 - Whispers in the Well</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="col-12 mt-2">
+                                                <button
+                                                    className="btn btn-sm"
+                                                    onClick={() => {
+                                                        setInkFilter('');
+                                                        setTypeFilter('');
+                                                        setCostFilter('');
+                                                        setSetFilter('');
+                                                    }}
+                                                    style={{
+                                                        background: 'rgba(255, 255, 255, 0.1)',
+                                                        color: 'var(--text-secondary)',
+                                                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                                                        borderRadius: '8px',
+                                                        padding: '0.5rem 1rem',
+                                                        fontSize: '0.9rem',
+                                                        fontWeight: 500,
+                                                        transition: 'all 0.3s ease',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                    onMouseEnter={e => {
+                                                        e.target.style.background = 'rgba(255, 209, 102, 0.2)';
+                                                        e.target.style.borderColor = 'rgba(255, 209, 102, 0.4)';
+                                                        e.target.style.color = 'var(--accent)';
+                                                    }}
+                                                    onMouseLeave={e => {
+                                                        e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                                                        e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                                                        e.target.style.color = 'var(--text-secondary)';
+                                                    }}
+                                                >
+                                                    🔄 Ripristina Filtri
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            );
+                        })()}
+
                         {/* Risultati Ricerca */}
                         {showResults && (
-                            <div className="mt-4 p-3" style={{
-                                background: 'rgba(0, 0, 0, 0.3)',
-                                borderRadius: '10px',
-                                maxHeight: '400px',
-                                overflowY: 'auto'
+                            <div className="mt-5" style={{
+                                background: 'linear-gradient(135deg, rgba(123, 97, 255, 0.06) 0%, rgba(255, 209, 102, 0.04) 100%)',
+                                border: '1px solid rgba(123, 97, 255, 0.12)',
+                                borderRadius: '14px',
+                                padding: '1.5rem',
+                                backdropFilter: 'blur(8px)'
                             }}>
-                                <div className="d-flex justify-content-between align-items-center mb-3">
-                                    <h6 className="text-info mb-0">
-                                        Risultati trovati: {searchResults.length}
-                                    </h6>
+                                <div className="d-flex justify-content-between align-items-center mb-4">
+                                    <div>
+                                        <h5 style={{
+                                            color: 'var(--accent-light)',
+                                            fontSize: '1.1rem',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.05em',
+                                            fontWeight: 600,
+                                            marginBottom: '0.25rem'
+                                        }}>
+                                            📊 Risultati della Ricerca
+                                        </h5>
+                                        <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginBottom: 0 }}>
+                                            Mostrando {displayCount} di {searchResults.length} carte trovate
+                                        </p>
+                                    </div>
                                     <button
-                                        className="btn btn-sm btn-outline-light"
+                                        className="btn btn-sm"
                                         onClick={() => setShowResults(false)}
+                                        style={{
+                                            background: 'rgba(255, 255, 255, 0.1)',
+                                            color: 'var(--text-secondary)',
+                                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                                            borderRadius: '8px',
+                                            padding: '0.5rem 1rem',
+                                            transition: 'all 0.3s ease',
+                                            cursor: 'pointer',
+                                            fontSize: '0.9rem'
+                                        }}
+                                        onMouseEnter={e => {
+                                            e.target.style.background = 'rgba(255, 209, 102, 0.2)';
+                                            e.target.style.borderColor = 'rgba(255, 209, 102, 0.4)';
+                                            e.target.style.color = 'var(--accent)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                                            e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                                            e.target.style.color = 'var(--text-secondary)';
+                                        }}
                                     >
                                         ✕ Chiudi
                                     </button>
                                 </div>
 
                                 {searchResults.length > 0 ? (
-                                    <div className="row">
-                                        {searchResults.slice(0, 12).map((card, index) => (
-                                            <div key={index} className="col-6 col-md-3 col-lg-2 mb-3 d-flex justify-content-center">
-                                                <div
-                                                    className="card bg-dark border-secondary"
-                                                    style={{
-                                                        aspectRatio: '2.5/3.5',
-                                                        width: '100%',
-                                                        maxWidth: '260px',
-                                                        border: '2px solid #444',
-                                                        borderRadius: '10px',
-                                                        position: 'relative',
-                                                        background: '#1a1a2e',
-                                                        overflow: 'hidden',
-                                                        display: 'flex',
-                                                        alignItems: 'stretch',
-                                                        justifyContent: 'center',
-                                                        margin: '0 auto',
-                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.3s ease'
-                                                    }}
-                                                    onClick={() => addCardFromSearch(card)}
-                                                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                                                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                                                >
-                                                    <img
-                                                        src={card.image_uris.digital.normal}
-                                                        className="card-img-top"
-                                                        alt={card.name}
+                                    <>
+                                        <div className="row g-3" style={{ maxHeight: '700px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+                                            {searchResults.slice(0, displayCount).map((card, index) => (
+                                                <div key={index} className="col-6 col-sm-4 col-md-3 col-lg-2">
+                                                    <div
                                                         style={{
+                                                            aspectRatio: '2.5/3.5',
                                                             width: '100%',
-                                                            height: '100%',
-                                                            objectFit: 'cover',
-                                                            borderRadius: '10px',
-                                                            display: 'block',
-                                                            background: '#1a1a2e'
+                                                            borderRadius: '12px',
+                                                            position: 'relative',
+                                                            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)',
+                                                            overflow: 'hidden',
+                                                            display: 'flex',
+                                                            alignItems: 'stretch',
+                                                            justifyContent: 'center',
+                                                            margin: '0 auto',
+                                                            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1)',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                            border: '1px solid rgba(255, 255, 255, 0.12)',
+                                                            transform: 'translateY(0)',
+                                                            willChange: 'transform, box-shadow'
                                                         }}
-                                                        onError={e => {
-                                                            e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNGY0ZjRmIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkxvcmNhbmE8L3RleHQ+PC9zdmc+';
+                                                        onClick={() => addCardFromSearch(card)}
+                                                        onMouseEnter={e => {
+                                                            e.currentTarget.style.transform = 'translateY(-8px) scale(1.03)';
+                                                            e.currentTarget.style.boxShadow = '0 12px 32px rgba(255, 209, 102, 0.2), 0 0 20px rgba(255, 209, 102, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.15)';
+                                                            e.currentTarget.style.borderColor = 'rgba(255, 209, 102, 0.4)';
                                                         }}
-                                                    />
+                                                        onMouseLeave={e => {
+                                                            e.currentTarget.style.transform = 'translateY(0)';
+                                                            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1)';
+                                                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                                                        }}
+                                                    >
+                                                        <img
+                                                            src={card.image_uris?.digital?.normal || card.image_uris?.normal || card.image_url || card.image}
+                                                            alt={card.name}
+                                                            style={{
+                                                                width: '100%',
+                                                                height: '100%',
+                                                                objectFit: 'cover',
+                                                                borderRadius: '12px',
+                                                                display: 'block',
+                                                                background: 'rgba(0, 0, 0, 0.3)'
+                                                            }}
+                                                            onError={e => {
+                                                                e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNGY0ZjRmIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkxvcmNhbmE8L3RleHQ+PC9zdmc+';
+                                                            }}
+                                                        />
+                                                    </div>
                                                 </div>
+                                            ))}
+                                        </div>
+                                        {displayCount < searchResults.length && (
+                                            <div className="text-center mt-4">
+                                                <button
+                                                    className="btn"
+                                                    onClick={() => setDisplayCount(displayCount + 24)}
+                                                    style={{
+                                                        background: 'linear-gradient(135deg, rgba(255, 209, 102, 0.2) 0%, rgba(123, 97, 255, 0.15) 100%)',
+                                                        color: 'var(--accent)',
+                                                        border: '1.5px solid rgba(255, 209, 102, 0.4)',
+                                                        borderRadius: '10px',
+                                                        padding: '0.75rem 1.5rem',
+                                                        fontSize: '0.95rem',
+                                                        fontWeight: 500,
+                                                        transition: 'all 0.3s ease',
+                                                        cursor: 'pointer',
+                                                        letterSpacing: '0.3px'
+                                                    }}
+                                                    onMouseEnter={e => {
+                                                        e.target.style.background = 'linear-gradient(135deg, rgba(255, 209, 102, 0.3) 0%, rgba(123, 97, 255, 0.2) 100%)';
+                                                        e.target.style.boxShadow = '0 8px 24px rgba(255, 209, 102, 0.2)';
+                                                        e.target.style.transform = 'translateY(-2px)';
+                                                    }}
+                                                    onMouseLeave={e => {
+                                                        e.target.style.background = 'linear-gradient(135deg, rgba(255, 209, 102, 0.2) 0%, rgba(123, 97, 255, 0.15) 100%)';
+                                                        e.target.style.boxShadow = 'none';
+                                                        e.target.style.transform = 'translateY(0)';
+                                                    }}
+                                                >
+                                                    📥 Carica altri ({searchResults.length - displayCount} rimanenti)
+                                                </button>
                                             </div>
-                                        ))}
-                                    </div>
+                                        )}
+                                    </>
                                 ) : (
-                                    <div className="text-center text-muted py-4">
-                                        <div style={{ fontSize: '48px', marginBottom: '15px' }}>🃏</div>
-                                        <p>Nessuna carta trovata per "{searchQuery}"</p>
-                                        <small>Prova con termini diversi come "Mickey", "Elsa", "Beast"...</small>
+                                    <div className="text-center py-5">
+                                        <div style={{ fontSize: '56px', marginBottom: '1rem', opacity: 0.8 }}>🃏</div>
+                                        <h6 style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '1.05rem', fontWeight: 600 }}>
+                                            Nessuna carta trovata
+                                        </h6>
+                                        <p style={{ color: 'var(--text-tertiary)', marginBottom: '1rem', fontSize: '0.95rem' }}>
+                                            Non abbiamo trovato carte per "<strong>{searchQuery}</strong>"
+                                        </p>
+                                        <small style={{ color: 'var(--text-tertiary)', display: 'block', marginTop: '1rem' }}>
+                                            💡 Prova con termini diversi come "Mickey", "Elsa", "Beast" o sperimenta i filtri
+                                        </small>
                                     </div>
                                 )}
                             </div>
@@ -648,7 +1054,6 @@ export default function LorcanaProxyPrinter() {
                     <h4 className="text-warning">
                         Carte aggiunte: <span className="badge bg-warning text-light">{cards.length}</span>
                     </h4>
-                    <small className="text-light muted-small">Ogni pagina PDF conterrà 9 carte. Puoi aggiungere quante carte vuoi!</small>
                 </div>
 
                 {/* Cards Grid */}
@@ -717,34 +1122,6 @@ export default function LorcanaProxyPrinter() {
                         </div>
                     </div>
                 )}
-
-                {/* Instructions */}
-                <div className="p-4" style={{
-                    background: 'rgba(255, 215, 0, 0.1)',
-                    border: '1px solid rgba(255, 215, 0, 0.3)',
-                    borderRadius: '15px'
-                }}>
-                    <h3 className="text-warning mb-3">📋 Istruzioni d'uso</h3>
-                    <div className="row">
-                        <div className="col-md-6">
-                            <ul className="list-unstyled muted-small">
-                                <li className="mb-2">✨ Cerca carte ufficiali dal database</li>
-                                <li className="mb-2">✨ Aggiungi quante carte vuoi usando ricerca, URL o upload</li>
-                                <li className="mb-2">✨ Le carte saranno disposte in una griglia 3x3 per pagina</li>
-                                <li className="mb-2">✨ Anteprima delle carte aggiunte sotto</li>
-                            </ul>
-                        </div>
-                        <div className="col-md-6">
-                            <ul className="list-unstyled muted-small">
-                                <li className="mb-2">✨ Clicca su "Stampa Carte" per creare il file stampabile o generare un PDF</li>
-                                <li className="mb-2">✨ Il PDF mostrerà le carte in una griglia 3x3 per pagina</li>
-                                <li className="mb-2">✨ Puoi stampare direttamente dal PDF generato</li>
-                                <li className="mb-2">✨ Rimuovi singole carte con il pulsante ×</li>
-                                <li className="mb-2">✨ Se aggiungi più di 9 carte, il PDF avrà più pagine!</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
             </div>
             <ToastContainer
                 position="top-right"

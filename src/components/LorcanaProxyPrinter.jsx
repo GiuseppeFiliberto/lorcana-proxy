@@ -25,6 +25,9 @@ export default function LorcanaProxyPrinter() {
     const [costFilter, setCostFilter] = useState('');
     const [setFilter, setSetFilter] = useState('');
     const [displayCount, setDisplayCount] = useState(24);
+    // Dropdown open states
+    const [openDropdown, setOpenDropdown] = useState(null);
+    const dropdownRef = useRef(null);
 
     const corsProxyUrl = (proxyPrefix, url) => {
         // proxyPrefix should include trailing separator if required
@@ -37,6 +40,17 @@ export default function LorcanaProxyPrinter() {
         'https://api.allorigins.win/raw?url=',
         'https://thingproxy.freeboard.io/fetch/'
     ];
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setOpenDropdown(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     // Auto-trigger search when filters or search query change
     useEffect(() => {
@@ -593,6 +607,130 @@ export default function LorcanaProxyPrinter() {
         return slots;
     };
 
+    // Custom Dropdown Component
+    const CustomDropdown = ({ label, value, options, onChange, icon, id }) => {
+        const isOpen = openDropdown === id;
+        const isActive = value !== '';
+
+        return (
+            <div className={`custom-dropdown ${isOpen ? 'open' : ''}`} style={{ position: 'relative' }}>
+                <label className="form-label text-light" style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+                    {icon} {label}
+                </label>
+                <div
+                    className={`custom-dropdown-trigger ${isActive ? 'filter-active' : ''}`}
+                    onClick={() => setOpenDropdown(isOpen ? null : id)}
+                    style={{
+                        background: isActive
+                            ? 'linear-gradient(135deg, rgba(255, 209, 102, 0.15) 0%, rgba(155, 126, 255, 0.12) 100%)'
+                            : 'linear-gradient(135deg, rgba(155, 126, 255, 0.08) 0%, rgba(107, 159, 255, 0.05) 100%)',
+                        border: `1.5px solid ${isActive ? 'rgba(255, 209, 102, 0.5)' : 'rgba(155, 126, 255, 0.25)'}`,
+                        borderRadius: '10px',
+                        padding: '0.75rem 1rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        position: 'relative',
+                        userSelect: 'none',
+                        boxShadow: isActive
+                            ? '0 4px 16px rgba(255, 209, 102, 0.2)'
+                            : '0 2px 8px rgba(155, 126, 255, 0.1)',
+                        fontWeight: isActive ? 600 : 500
+                    }}
+                    onMouseEnter={(e) => {
+                        if (!isActive) {
+                            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(155, 126, 255, 0.12) 0%, rgba(107, 159, 255, 0.08) 100%)';
+                            e.currentTarget.style.borderColor = 'rgba(155, 126, 255, 0.4)';
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(155, 126, 255, 0.15)';
+                        }
+                    }}
+                    onMouseLeave={(e) => {
+                        if (!isActive) {
+                            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(155, 126, 255, 0.08) 0%, rgba(107, 159, 255, 0.05) 100%)';
+                            e.currentTarget.style.borderColor = 'rgba(155, 126, 255, 0.25)';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(155, 126, 255, 0.1)';
+                        }
+                    }}
+                >
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        color: '#fff',
+                        fontSize: '0.95rem'
+                    }}>
+                        <span>{value ? options.find(opt => opt.value === value)?.label : options[0].label}</span>
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            style={{
+                                transition: 'transform 0.3s ease',
+                                transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+                            }}
+                        >
+                            <path fill={isActive ? '#FFD166' : '#9B7EFF'} d="M8 11L3 6h10z" />
+                        </svg>
+                    </div>
+
+                    {isOpen && (
+                        <div className="custom-dropdown-menu" style={{
+                            position: 'absolute',
+                            top: 'calc(100% + 8px)',
+                            left: 0,
+                            right: 0,
+                            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+                            border: '1.5px solid rgba(155, 126, 255, 0.3)',
+                            borderRadius: '10px',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(155, 126, 255, 0.2)',
+                            zIndex: 1001,
+                            maxHeight: '300px',
+                            overflowY: 'auto',
+                            animation: 'slideDown 0.2s ease-out'
+                        }}>
+                            {options.map((option, index) => (
+                                <div
+                                    key={option.value}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onChange(option.value);
+                                        setOpenDropdown(null);
+                                    }}
+                                    style={{
+                                        padding: '0.75rem 1rem',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        color: value === option.value ? '#FFD166' : '#fff',
+                                        fontWeight: value === option.value ? 600 : 500,
+                                        background: value === option.value
+                                            ? 'linear-gradient(135deg, rgba(255, 209, 102, 0.15) 0%, rgba(155, 126, 255, 0.1) 100%)'
+                                            : 'transparent',
+                                        borderTop: index > 0 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (value !== option.value) {
+                                            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(155, 126, 255, 0.15) 0%, rgba(107, 159, 255, 0.1) 100%)';
+                                            e.currentTarget.style.color = '#9B7EFF';
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (value !== option.value) {
+                                            e.currentTarget.style.background = 'transparent';
+                                            e.currentTarget.style.color = '#fff';
+                                        }
+                                    }}
+                                >
+                                    {option.label}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div>
             <div className="app-container">
@@ -718,7 +856,7 @@ export default function LorcanaProxyPrinter() {
                             const activeFiltersCount = (inkFilter ? 1 : 0) + (typeFilter ? 1 : 0) + (costFilter ? 1 : 0) + (setFilter ? 1 : 0);
                             return (
                                 <>
-                                    <div style={{
+                                    <div className="filters-section" style={{
                                         marginTop: '1.5rem',
                                         padding: '1rem',
                                         background: 'linear-gradient(135deg, rgba(123, 97, 255, 0.08) 0%, rgba(255, 209, 102, 0.06) 100%)',
@@ -728,7 +866,7 @@ export default function LorcanaProxyPrinter() {
                                     }}>
                                         <div className="d-flex align-items-center justify-content-between mb-3">
                                             <h6 className="mb-0" style={{ color: 'var(--accent-light)', fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
-                                                🎯 Filtri Avanzati
+                                                ✨ Filtri Avanzati
                                             </h6>
                                             {activeFiltersCount > 0 && (
                                                 <span style={{
@@ -743,121 +881,85 @@ export default function LorcanaProxyPrinter() {
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="row mt-3 g-3">
+                                        <div className="row mt-3 g-3" ref={dropdownRef}>
                                             <div className="col-12 col-md-6 col-lg-3">
-                                                <label className="form-label text-light" style={{ fontSize: '0.95rem', fontWeight: 600 }}> Colori</label>
-                                                <select
-                                                    className="form-select form-select-lg"
+                                                <CustomDropdown
+                                                    label="Inchiostro"
+                                                    icon=""
+                                                    id="ink"
                                                     value={inkFilter}
-                                                    onChange={(e) => setInkFilter(e.target.value)}
-                                                    style={{
-                                                        background: inkFilter ? 'rgba(255, 209, 102, 0.15)' : 'rgba(255, 255, 255, 0.08)',
-                                                        color: '#fff',
-                                                        borderColor: inkFilter ? 'rgba(255, 209, 102, 0.4)' : 'rgba(255, 255, 255, 0.2)',
-                                                        padding: '0.75rem 1rem',
-                                                        borderRadius: '10px',
-                                                        border: '1.5px solid',
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.3s ease',
-                                                        fontSize: '0.95rem'
-                                                    }}
-                                                >
-                                                    <option value="">Tutti gli inchiostri</option>
-                                                    <option value="Amber">🟠 Amber</option>
-                                                    <option value="Amethyst">💜 Amethyst</option>
-                                                    <option value="Emerald">💚 Emerald</option>
-                                                    <option value="Ruby">❤️ Ruby</option>
-                                                    <option value="Sapphire">💙 Sapphire</option>
-                                                    <option value="Steel">⚫ Steel</option>
-                                                </select>
+                                                    onChange={setInkFilter}
+                                                    options={[
+                                                        { value: '', label: 'Tutti gli inchiostri' },
+                                                        { value: 'Amber', label: '💛 Amber' },
+                                                        { value: 'Amethyst', label: '💜 Amethyst' },
+                                                        { value: 'Emerald', label: '💚 Emerald' },
+                                                        { value: 'Ruby', label: '❤️ Ruby' },
+                                                        { value: 'Sapphire', label: '💙 Sapphire' },
+                                                        { value: 'Steel', label: '🩶 Steel' }
+                                                    ]}
+                                                />
                                             </div>
 
                                             <div className="col-12 col-md-6 col-lg-3">
-                                                <label className="form-label text-light" style={{ fontSize: '0.95rem', fontWeight: 600 }}> Tipo di Carta</label>
-                                                <select
-                                                    className="form-select form-select-lg"
+                                                <CustomDropdown
+                                                    label="Tipo di Carta"
+                                                    icon=""
+                                                    id="type"
                                                     value={typeFilter}
-                                                    onChange={(e) => setTypeFilter(e.target.value)}
-                                                    style={{
-                                                        background: typeFilter ? 'rgba(255, 209, 102, 0.15)' : 'rgba(255, 255, 255, 0.08)',
-                                                        color: '#fff',
-                                                        borderColor: typeFilter ? 'rgba(255, 209, 102, 0.4)' : 'rgba(255, 255, 255, 0.2)',
-                                                        padding: '0.75rem 1rem',
-                                                        borderRadius: '10px',
-                                                        border: '1.5px solid',
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.3s ease',
-                                                        fontSize: '0.95rem'
-                                                    }}
-                                                >
-                                                    <option value="">Tutti i tipi</option>
-                                                    <option value="Glimmer">👤 Character</option>
-                                                    <option value="Action">⚡ Action - Song</option>
-                                                    <option value="Item">🎁 Item</option>
-                                                    <option value="Location">🏰 Location</option>
-                                                </select>
+                                                    onChange={setTypeFilter}
+                                                    options={[
+                                                        { value: '', label: 'Tutti i tipi' },
+                                                        { value: 'Glimmer', label: 'Character' },
+                                                        { value: 'Action', label: 'Action - Song' },
+                                                        { value: 'Item', label: 'Item' },
+                                                        { value: 'Location', label: 'Location' }
+                                                    ]}
+                                                />
                                             </div>
 
                                             <div className="col-12 col-md-6 col-lg-3">
-                                                <label className="form-label text-light" style={{ fontSize: '0.95rem', fontWeight: 600 }}> Costo</label>
-                                                <select
-                                                    className="form-select form-select-lg"
+                                                <CustomDropdown
+                                                    label="Costo"
+                                                    icon=""
+                                                    id="cost"
                                                     value={costFilter}
-                                                    onChange={(e) => setCostFilter(e.target.value)}
-                                                    style={{
-                                                        background: costFilter ? 'rgba(255, 209, 102, 0.15)' : 'rgba(255, 255, 255, 0.08)',
-                                                        color: '#fff',
-                                                        borderColor: costFilter ? 'rgba(255, 209, 102, 0.4)' : 'rgba(255, 255, 255, 0.2)',
-                                                        padding: '0.75rem 1rem',
-                                                        borderRadius: '10px',
-                                                        border: '1.5px solid',
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.3s ease',
-                                                        fontSize: '0.95rem'
-                                                    }}
-                                                >
-                                                    <option value="">Tutti i costi</option>
-                                                    <option value="0">0</option>
-                                                    <option value="1">1</option>
-                                                    <option value="2">2</option>
-                                                    <option value="3">3</option>
-                                                    <option value="4">4</option>
-                                                    <option value="5">5</option>
-                                                    <option value="6">6</option>
-                                                    <option value="7">7+</option>
-                                                </select>
+                                                    onChange={setCostFilter}
+                                                    options={[
+                                                        { value: '', label: 'Tutti i costi' },
+                                                        { value: '0', label: '0' },
+                                                        { value: '1', label: '1' },
+                                                        { value: '2', label: '2' },
+                                                        { value: '3', label: '3' },
+                                                        { value: '4', label: '4' },
+                                                        { value: '5', label: '5' },
+                                                        { value: '6', label: '6' },
+                                                        { value: '7', label: '7+' }
+                                                    ]}
+                                                />
                                             </div>
 
                                             <div className="col-12 col-md-6 col-lg-3">
-                                                <label className="form-label text-light" style={{ fontSize: '0.95rem', fontWeight: 600 }}> Set</label>
-                                                <select
-                                                    className="form-select form-select-lg"
+                                                <CustomDropdown
+                                                    label="Set"
+                                                    icon=""
+                                                    id="set"
                                                     value={setFilter}
-                                                    onChange={(e) => setSetFilter(e.target.value)}
-                                                    style={{
-                                                        background: setFilter ? 'rgba(255, 209, 102, 0.15)' : 'rgba(255, 255, 255, 0.08)',
-                                                        color: '#fff',
-                                                        borderColor: setFilter ? 'rgba(255, 209, 102, 0.4)' : 'rgba(255, 255, 255, 0.2)',
-                                                        padding: '0.75rem 1rem',
-                                                        borderRadius: '10px',
-                                                        border: '1.5px solid',
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.3s ease',
-                                                        fontSize: '0.95rem'
-                                                    }}
-                                                >
-                                                    <option value="">Tutti i set</option>
-                                                    <option value="1">1 - The First Chapter</option>
-                                                    <option value="2">2 - Rise of the Floodborn</option>
-                                                    <option value="3">3 - Into the Inklands</option>
-                                                    <option value="4">4 - Ursula's Return</option>
-                                                    <option value="5">5 - Shimmering Skies</option>
-                                                    <option value="6">6 - Azurite Sea</option>
-                                                    <option value="7">7 - Archazia's Island</option>
-                                                    <option value="8">8 - Reign of Jafar</option>
-                                                    <option value="9">9 - Fabled</option>
-                                                    <option value="10">10 - Whispers in the Well</option>
-                                                </select>
+                                                    onChange={setSetFilter}
+                                                    options={[
+                                                        { value: '', label: 'Tutti i set' },
+                                                        { value: '1', label: '1 - The First Chapter' },
+                                                        { value: '2', label: '2 - Rise of the Floodborn' },
+                                                        { value: '3', label: '3 - Into the Inklands' },
+                                                        { value: '4', label: '4 - Ursula\'s Return' },
+                                                        { value: '5', label: '5 - Shimmering Skies' },
+                                                        { value: '6', label: '6 - Azurite Sea' },
+                                                        { value: '7', label: '7 - Archazia\'s Island' },
+                                                        { value: '8', label: '8 - Reign of Jafar' },
+                                                        { value: '9', label: '9 - Fabled' },
+                                                        { value: '10', label: '10 - Whispers in the Well' }
+                                                    ]}
+                                                />
                                             </div>
 
                                             <div className="col-12 mt-2">
@@ -902,7 +1004,7 @@ export default function LorcanaProxyPrinter() {
 
                         {/* Risultati Ricerca */}
                         {showResults && (
-                            <div className="mt-5" style={{
+                            <div className="search-results-section mt-5" style={{
                                 background: 'linear-gradient(135deg, rgba(123, 97, 255, 0.06) 0%, rgba(255, 209, 102, 0.04) 100%)',
                                 border: '1px solid rgba(123, 97, 255, 0.12)',
                                 borderRadius: '14px',
@@ -919,7 +1021,7 @@ export default function LorcanaProxyPrinter() {
                                             fontWeight: 600,
                                             marginBottom: '0.25rem'
                                         }}>
-                                            📊 Risultati della Ricerca
+                                            Risultati della Ricerca
                                         </h5>
                                         <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginBottom: 0 }}>
                                             Mostrando {displayCount} di {searchResults.length} carte trovate
@@ -1094,8 +1196,12 @@ export default function LorcanaProxyPrinter() {
 
                 {/* Action Buttons */}
                 <div className="actions-panel mb-5 text-center">
-                    <button className="btn btn-lg custom btn-accent" onClick={generatePDF} disabled={cards.length === 0} aria-label="Stampa tutte le carte aggiunte">🖨️ Stampa Carte</button>
-                    <button className="btn btn-lg custom btn-danger" onClick={clearAllCards} disabled={cards.length === 0} aria-label="Cancella tutte le carte aggiunte">🗑️ Cancella Tutto</button>
+                    <button className="btn btn-lg custom btn-accent btn-print" onClick={generatePDF} disabled={cards.length === 0} aria-label="Stampa tutte le carte aggiunte">
+                        Stampa Carte
+                    </button>
+                    <button className="btn btn-lg custom btn-danger btn-clear" onClick={clearAllCards} disabled={cards.length === 0} aria-label="Cancella tutte le carte aggiunte">
+                        Cancella Tutto
+                    </button>
                     {/* Put cancel next to print like before; only enabled during rendering */}
                     {isRendering && (
                         <button className="btn btn-sm btn-outline-light ms-2" onClick={cancelRender} aria-label="Annulla generazione PDF">⛔ Annulla</button>
@@ -1151,6 +1257,18 @@ export default function LorcanaProxyPrinter() {
                         </div>
                     </div>
                 )}
+
+                {/* Footer */}
+                <div className="app-footer">
+                    <div className="container">
+                        <p style={{ marginBottom: '0.5rem' }}>
+                            ✨ Fatto da <strong style={{ color: '#FFD166' }}>Phil</strong> de <strong style={{ color: '#FFD166' }}>Gli Incantababbaluci</strong> ✨
+                        </p>
+                        <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.5)' }}>
+                            Lorcana Proxy Printer • Versione 1.0
+                        </p>
+                    </div>
+                </div>
             </div>
             <ToastContainer
                 position="top-right"
@@ -1168,6 +1286,6 @@ export default function LorcanaProxyPrinter() {
                     fontSize: '14px'
                 }}
             />
-        </div>
+        </div >
     );
 }

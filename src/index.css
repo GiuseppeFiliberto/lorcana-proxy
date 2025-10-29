@@ -98,3 +98,16 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #FFD166 0%, #9B7EFF 100%);
 }
+
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

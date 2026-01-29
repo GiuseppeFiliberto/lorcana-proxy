@@ -100,8 +100,14 @@ export const usePDFGenerator = () => {
                         return [...prev, failInfo];
                     });
                 })
-                    .then(img => ({ index, img }))
-                    .catch(err => ({ index, img: null })); // Cattura errori singoli
+                    .then(img => {
+                        console.log(`Immagine ${index} caricata:`, img.width, 'x', img.height);
+                        return { index, img };
+                    })
+                    .catch(err => {
+                        console.error(`Errore caricamento immagine ${index}:`, err);
+                        return { index, img: null };
+                    });
             });
 
             // Aspetta il completamento di tutti i caricamenti in parallelo
@@ -147,7 +153,7 @@ export const usePDFGenerator = () => {
                         // Usa l'immagine pre-caricata se disponibile
                         const img = allImages[cardIndex];
 
-                        if (img) {
+                        if (img && img.width && img.height) {
                             let drawWidth = w;
                             let drawHeight = h;
                             const imgRatio = img.width / img.height;
@@ -162,12 +168,19 @@ export const usePDFGenerator = () => {
                             const xOffset = x + (w - drawWidth) / 2;
                             const yOffset = y + (h - drawHeight) / 2;
 
-                            ctx.drawImage(img, xOffset, yOffset, drawWidth, drawHeight);
-                            ctx.strokeStyle = '#000000';
-                            ctx.lineWidth = 2;
-                            ctx.strokeRect(x, y, w, h);
+                            try {
+                                ctx.drawImage(img, xOffset, yOffset, drawWidth, drawHeight);
+                                ctx.strokeStyle = '#000000';
+                                ctx.lineWidth = 2;
+                                ctx.strokeRect(x, y, w, h);
+                                console.log(`Carta ${cardIndex} disegnata con successo`);
+                            } catch (drawErr) {
+                                console.error(`Errore nel disegno della carta ${cardIndex}:`, drawErr);
+                                throw drawErr;
+                            }
                         } else {
                             // Se l'immagine non è stata caricata, disegna un rettangolo grigio
+                            console.warn(`Carta ${cardIndex} non caricata`);
                             ctx.fillStyle = '#cccccc';
                             ctx.fillRect(x, y, w, h);
                             ctx.strokeStyle = '#000000';
@@ -178,6 +191,7 @@ export const usePDFGenerator = () => {
                             ctx.fillText('Non caricata', x + 10, y + h / 2);
                         }
                     } catch (error) {
+                        console.error(`Errore processamento carta ${cardIndex}:`, error);
                         ctx.fillStyle = '#cccccc';
                         ctx.fillRect(x, y, w, h);
                         ctx.strokeStyle = '#000000';

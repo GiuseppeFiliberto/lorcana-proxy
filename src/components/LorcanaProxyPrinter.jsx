@@ -82,19 +82,6 @@ export default function LorcanaProxyPrinter() {
     return (
         <div>
             <div className="app-container">
-                {/* Background stars */}
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><radialGradient id='star' cx='50%' cy='50%'><stop offset='0%' style='stop-color:%23ffd700;stop-opacity:0.8'/><stop offset='100%' style='stop-color:%23ffd700;stop-opacity:0'/></radialGradient></defs><circle cx='20' cy='30' r='1' fill='url(%23star)'/><circle cx='80' cy='20' r='0.5' fill='url(%23star)'/><circle cx='60' cy='70' r='0.8' fill='url(%23star)'/><circle cx='30' cy='80' r='0.6' fill='url(%23star)'/><circle cx='90' cy='60' r='0.4' fill='url(%23star)'/></svg>") repeat`,
-                    pointerEvents: 'none',
-                    opacity: 0.3,
-                    animation: 'twinkle 4s ease-in-out infinite'
-                }} />
-
                 <div className="container py-4" style={{ position: 'relative', zIndex: 1 }}>
                     <Header />
                     <Instructions />
@@ -115,6 +102,7 @@ export default function LorcanaProxyPrinter() {
                             setTypeFilter={filterHook.setTypeFilter}
                             setCostFilter={filterHook.setCostFilter}
                             setSetFilter={filterHook.setSetFilter}
+                            setRarityFilter={filterHook.setRarityFilter}
                             activeFiltersCount={filterHook.activeFiltersCount}
                             resetFilters={filterHook.resetFilters}
                             openDropdown={openDropdown}
@@ -140,7 +128,6 @@ export default function LorcanaProxyPrinter() {
                         border: '1px solid rgba(255, 255, 255, 0.08)',
                         borderRadius: 'var(--radius-lg)',
                         padding: 'var(--spacing-xl)',
-                        backdropFilter: 'blur(12px)',
                         marginBottom: 'var(--spacing-xl)',
                         boxShadow: 'var(--shadow-2)'
                     }}>

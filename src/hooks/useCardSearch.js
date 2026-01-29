@@ -9,7 +9,7 @@ export const useCardSearch = (searchQuery, filters) => {
     const [displayCount, setDisplayCount] = useState(24);
 
     const searchCards = async () => {
-        const hasFilters = filters.ink || filters.type || filters.cost || filters.set;
+        const hasFilters = filters.ink || filters.type || filters.cost || filters.set || filters.rarity;
         const hasQuery = searchQuery.trim();
 
         if (!hasQuery && !hasFilters) {
@@ -77,6 +77,14 @@ export const useCardSearch = (searchQuery, filters) => {
                     });
                 }
 
+                if (filters.rarity) {
+                    results = results.filter(card => {
+                        const rarity = card.rarity || card.card_rarity || '';
+                        const rarityStr = String(rarity || '');
+                        return rarityStr.toLowerCase().includes(filters.rarity.toLowerCase());
+                    });
+                }
+
                 setSearchResults(results);
                 setDisplayCount(24);
                 setShowResults(true);
@@ -94,7 +102,7 @@ export const useCardSearch = (searchQuery, filters) => {
 
     // Auto-trigger search when filters or query change
     useEffect(() => {
-        const hasFilters = filters.ink || filters.type || filters.cost || filters.set;
+        const hasFilters = filters.ink || filters.type || filters.cost || filters.set || filters.rarity;
         const hasQuery = searchQuery.trim();
 
         if (hasFilters || hasQuery) {
@@ -107,7 +115,7 @@ export const useCardSearch = (searchQuery, filters) => {
             setShowResults(false);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchQuery, filters.ink, filters.type, filters.cost, filters.set]);
+    }, [searchQuery, filters.ink, filters.type, filters.cost, filters.set, filters.rarity]);
 
     return {
         searchResults,

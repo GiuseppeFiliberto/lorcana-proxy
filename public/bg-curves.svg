@@ -1,0 +1,79 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="baseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1d3a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#252847;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2d3154;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Base gradient background -->
+  <rect width="1920" height="1080" fill="url(#baseGradient)"/>
+  
+  <!-- Smooth curved lines - Left side flowing -->
+  <path d="M -200,200 C 100,100 300,300 600,200 C 900,100 1100,300 1400,200" 
+        fill="none" 
+        stroke="rgba(96, 165, 250, 0.2)" 
+        stroke-width="4"
+        stroke-linecap="round"
+        filter="url(#glow)"/>
+  
+  <path d="M -200,400 C 150,300 350,500 650,400 C 950,300 1150,500 1450,400" 
+        fill="none" 
+        stroke="rgba(129, 140, 248, 0.15)" 
+        stroke-width="3"
+        stroke-linecap="round"
+        filter="url(#glow)"/>
+  
+  <path d="M -200,600 C 200,500 400,700 700,600 C 1000,500 1200,700 1500,600" 
+        fill="none" 
+        stroke="rgba(96, 165, 250, 0.12)" 
+        stroke-width="3"
+        stroke-linecap="round"
+        filter="url(#glow)"/>
+  
+  <!-- Right side flowing curves -->
+  <path d="M 2120,300 C 1820,200 1620,400 1320,300 C 1020,200 820,400 520,300" 
+        fill="none" 
+        stroke="rgba(129, 140, 248, 0.2)" 
+        stroke-width="4"
+        stroke-linecap="round"
+        filter="url(#glow)"/>
+  
+  <path d="M 2120,500 C 1770,400 1570,600 1270,500 C 970,400 770,600 470,500" 
+        fill="none" 
+        stroke="rgba(96, 165, 250, 0.15)" 
+        stroke-width="3"
+        stroke-linecap="round"
+        filter="url(#glow)"/>
+  
+  <path d="M 2120,700 C 1720,600 1520,800 1220,700 C 920,600 720,800 420,700" 
+        fill="none" 
+        stroke="rgba(129, 140, 248, 0.12)" 
+        stroke-width="3"
+        stroke-linecap="round"
+        filter="url(#glow)"/>
+  
+  <!-- Large sweeping curve across the middle -->
+  <path d="M -100,540 C 380,300 860,780 1340,540 C 1820,300 2020,540 2020,540" 
+        fill="none" 
+        stroke="rgba(96, 165, 250, 0.1)" 
+        stroke-width="5"
+        stroke-linecap="round"
+        filter="url(#glow)"/>
+  
+  <!-- Bottom curves -->
+  <path d="M -200,850 C 250,750 450,950 750,850 C 1050,750 1250,950 1550,850" 
+        fill="none" 
+        stroke="rgba(129, 140, 248, 0.1)" 
+        stroke-width="2.5"
+        stroke-linecap="round"
+        filter="url(#glow)"/>
+</svg>

@@ -61,5 +61,14 @@ export const applyFilters = (cards, filters) => {
         });
     }
 
+    // Apply rarity filter
+    if (filters.rarity) {
+        results = results.filter(card => {
+            const rarity = card.rarity || card.card_rarity || '';
+            const rarityStr = String(rarity || '');
+            return rarityStr.toLowerCase().includes(filters.rarity.toLowerCase());
+        });
+    }
+
     return results;
 };

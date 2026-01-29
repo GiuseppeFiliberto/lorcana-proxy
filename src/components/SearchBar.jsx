@@ -1,7 +1,7 @@
 export default function SearchBar({ searchQuery, setSearchQuery, onSearch, isSearching, disabled }) {
     return (
         <div className="mb-4">
-            <h5 className="text-warning mb-3">🔍 Cerca Carte</h5>
+            <h5 className="mb-3" style={{ color: '#ffffff' }}>Cerca Carte</h5>
             <div className="col-12">
                 <div className="search-controls">
                     <input
@@ -17,7 +17,7 @@ export default function SearchBar({ searchQuery, setSearchQuery, onSearch, isSea
                         onClick={onSearch}
                         disabled={disabled || isSearching}
                     >
-                        {isSearching ? '🔄 Ricerca...' : '🔍 Cerca'}
+                        {isSearching ? 'Ricerca...' : 'Cerca'}
                     </button>
                 </div>
             </div>

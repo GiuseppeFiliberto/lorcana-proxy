@@ -14,23 +14,20 @@ export default function Header() {
                     style={{
                         width: '200px',
                         height: 'auto',
-                        filter: 'drop-shadow(0 4px 12px rgba(123, 97, 255, 0.4))',
+                        filter: 'drop-shadow(0 4px 12px rgba(96, 165, 250, 0.4))',
                         animation: 'float 3s ease-in-out infinite'
                     }}
                 />
                 <h1 className="display-4 fw-bold" style={{
-                    background: 'linear-gradient(135deg, #FFD166 0%, #9B7EFF 50%, #6B9FFF 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
+                    color: '#ffffff',
                     marginBottom: '0.5rem',
-                    textShadow: '0 0 30px rgba(155, 126, 255, 0.3)'
+                    textShadow: '0 0 30px rgba(96, 165, 250, 0.5), 0 0 60px rgba(129, 140, 248, 0.3)'
                 }}>
                     Proxy Printer
                 </h1>
             </div>
             <p className="lead" style={{
-                color: 'rgba(255, 255, 255, 0.85)',
+                color: '#ffffff',
                 fontSize: '1.1rem'
             }}>
                 Crea e stampa le tue carte proxy personalizzate

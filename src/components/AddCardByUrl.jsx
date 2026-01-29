@@ -32,7 +32,7 @@ export default function AddCardByUrl({ onAddCard }) {
 
     return (
         <div className="mb-4">
-            <h5 className="text-warning mb-3">🔗 Aggiungi da URL</h5>
+            <h5 className="mb-3" style={{ color: '#ffffff' }}>Aggiungi da URL</h5>
             <div className="col-12">
                 <div className="search-controls">
                     <input
@@ -49,7 +49,7 @@ export default function AddCardByUrl({ onAddCard }) {
                         onClick={handleAddCard}
                         disabled={!cardUrl.trim() || isLoading}
                     >
-                        {isLoading ? '🔄 Caricamento...' : '➕ Aggiungi'}
+                        {isLoading ? 'Caricamento...' : 'Aggiungi'}
                     </button>
                 </div>
             </div>

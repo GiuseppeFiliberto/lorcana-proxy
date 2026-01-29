@@ -1,5 +1,8 @@
 // Utility functions for loading images with proxy fallbacks
 
+// Cache per le immagini già caricate
+const imageCache = new Map();
+
 const PROXY_PREFIXES = [
     'https://corsproxy.io/?',
     'https://api.allorigins.win/raw?url=',
@@ -11,17 +14,25 @@ const corsProxyUrl = (proxyPrefix, url) => {
 };
 
 export const loadImage = async (src, onFail) => {
+    // Controlla cache
+    if (imageCache.has(src)) {
+        return imageCache.get(src);
+    }
+
     // Data URLs and blob URLs can be used directly
     if (src.startsWith('data:') || src.startsWith('blob:')) {
         return await new Promise((resolve, reject) => {
             const img = new window.Image();
-            img.onload = () => resolve(img);
+            img.onload = () => {
+                imageCache.set(src, img);
+                resolve(img);
+            };
             img.onerror = () => reject(new Error('Immagine non caricata'));
             img.src = src;
         });
     }
 
-    const maxAttempts = 3;
+    const maxAttempts = 2; // Ridotto da 3 a 2
     let lastError = null;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -31,7 +42,7 @@ export const loadImage = async (src, onFail) => {
             let timeoutId = null;
 
             try {
-                timeoutId = setTimeout(() => controller.abort(), 20000);
+                timeoutId = setTimeout(() => controller.abort(), 15000); // Ridotto da 20s
                 const urlToFetch = corsProxyUrl(prefix, src);
                 const response = await fetch(urlToFetch, { signal: controller.signal });
                 clearTimeout(timeoutId);
@@ -46,7 +57,10 @@ export const loadImage = async (src, onFail) => {
 
                 const img = await new Promise((resolve, reject) => {
                     const i = new window.Image();
-                    i.onload = () => resolve(i);
+                    i.onload = () => {
+                        imageCache.set(src, i);
+                        resolve(i);
+                    };
                     i.onerror = () => reject(new Error('Errore nel caricamento dell\'oggetto immagine'));
                     i.src = objectUrl;
                 });
@@ -67,9 +81,16 @@ export const loadImage = async (src, onFail) => {
                 let t = setTimeout(() => {
                     i.onload = i.onerror = null;
                     reject(new Error('Timeout caricamento immagine diretta'));
-                }, 15000);
-                i.onload = () => { clearTimeout(t); resolve(i); };
-                i.onerror = () => { clearTimeout(t); reject(new Error('Immagine diretta non caricata')); };
+                }, 10000); // Ridotto da 15s
+                i.onload = () => {
+                    clearTimeout(t);
+                    imageCache.set(src, i);
+                    resolve(i);
+                };
+                i.onerror = () => {
+                    clearTimeout(t);
+                    reject(new Error('Immagine diretta non caricata'));
+                };
                 i.src = src;
             });
             return directImg;
@@ -77,8 +98,10 @@ export const loadImage = async (src, onFail) => {
             lastError = errDirect;
         }
 
-        // Exponential backoff before next attempt
-        await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt - 1)));
+        // Ridotto backoff
+        if (attempt < maxAttempts) {
+            await new Promise(r => setTimeout(r, 300));
+        }
     }
 
     // All attempts failed

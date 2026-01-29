@@ -76,7 +76,8 @@ export const usePDFGenerator = () => {
             const marginX = (pageWidthMM - totalGridWidth) / 2;
             const marginY = (pageHeightMM - totalGridHeight) / 2;
 
-            const DPI = 600;
+            // Ridotto DPI da 600 a 300 per performance migliori (ancora ottima qualità di stampa)
+            const DPI = 300;
             const mmToPx = mm => Math.round(mm / 25.4 * DPI);
 
             const { default: jsPDF } = await import('jspdf');
@@ -154,13 +155,18 @@ export const usePDFGenerator = () => {
 
                 if (isCancelled) break;
 
-                const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                // Usa qualità JPEG più bassa per ridurre dimensione e tempo di elaborazione
+                const imgData = canvas.toDataURL('image/jpeg', 0.85);
                 if (page === 0) {
                     pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthMM, pageHeightMM);
                 } else {
                     pdf.addPage();
                     pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthMM, pageHeightMM);
                 }
+
+                // Libera memoria del canvas
+                canvas.width = 0;
+                canvas.height = 0;
             }
 
             if (isCancelled) {

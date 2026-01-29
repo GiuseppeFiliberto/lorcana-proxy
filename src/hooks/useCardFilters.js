@@ -6,22 +6,25 @@ export const useCardFilters = (onSearch) => {
     const [typeFilter, setTypeFilter] = useState('');
     const [costFilter, setCostFilter] = useState('');
     const [setFilter, setSetFilter] = useState('');
+    const [rarityFilter, setRarityFilter] = useState('');
 
     const filters = {
         ink: inkFilter,
         type: typeFilter,
         cost: costFilter,
-        set: setFilter
+        set: setFilter,
+        rarity: rarityFilter
     };
 
-    const hasActiveFilters = inkFilter || typeFilter || costFilter || setFilter;
-    const activeFiltersCount = [inkFilter, typeFilter, costFilter, setFilter].filter(Boolean).length;
+    const hasActiveFilters = inkFilter || typeFilter || costFilter || setFilter || rarityFilter;
+    const activeFiltersCount = [inkFilter, typeFilter, costFilter, setFilter, rarityFilter].filter(Boolean).length;
 
     const resetFilters = () => {
         setInkFilter('');
         setTypeFilter('');
         setCostFilter('');
         setSetFilter('');
+        setRarityFilter('');
     };
 
     return {
@@ -34,6 +37,8 @@ export const useCardFilters = (onSearch) => {
         setCostFilter,
         setFilter,
         setSetFilter,
+        rarityFilter,
+        setRarityFilter,
         hasActiveFilters,
         activeFiltersCount,
         resetFilters,

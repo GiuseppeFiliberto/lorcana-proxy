@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import CustomDropdown from './CustomDropdown';
-import { INK_OPTIONS, TYPE_OPTIONS, COST_OPTIONS, SET_OPTIONS } from '../constants/filterOptions';
+import { INK_OPTIONS, TYPE_OPTIONS, COST_OPTIONS, SET_OPTIONS, RARITY_OPTIONS } from '../constants/filterOptions';
 
 export default function FilterSection({
     filters,
@@ -8,6 +8,7 @@ export default function FilterSection({
     setTypeFilter,
     setCostFilter,
     setSetFilter,
+    setRarityFilter,
     activeFiltersCount,
     resetFilters,
     openDropdown,
@@ -31,9 +32,9 @@ export default function FilterSection({
         <div className="filters-section" style={{
             marginTop: '1.5rem',
             padding: '1rem',
-            background: 'linear-gradient(135deg, rgba(123, 97, 255, 0.08) 0%, rgba(255, 209, 102, 0.06) 100%)',
+            background: 'linear-gradient(135deg, rgba(96, 165, 250, 0.08) 0%, rgba(129, 140, 248, 0.06) 100%)',
             borderRadius: '12px',
-            border: '1px solid rgba(123, 97, 255, 0.15)',
+            border: '1px solid rgba(96, 165, 250, 0.15)',
             marginBottom: '0.5rem',
             overflow: 'visible',
             position: 'relative',
@@ -41,13 +42,13 @@ export default function FilterSection({
         }}>
             <div className="d-flex align-items-center justify-content-between mb-3">
                 <h6 className="mb-0" style={{
-                    color: 'var(--accent-light)',
+                    color: '#ffffff',
                     fontSize: '0.95rem',
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
                     fontWeight: 600
                 }}>
-                    ✨ Filtri Avanzati
+                    Filtri Avanzati
                 </h6>
                 {activeFiltersCount > 0 && (
                     <span style={{
@@ -64,7 +65,8 @@ export default function FilterSection({
             </div>
 
             <div className="row mt-3 g-3" ref={dropdownRef}>
-                <div className="col-12 col-md-6 col-lg-3">
+                {/* Prima riga - 3 filtri */}
+                <div className="col-12 col-md-6 col-lg-4">
                     <CustomDropdown
                         label="Inchiostro"
                         id="ink"
@@ -76,7 +78,7 @@ export default function FilterSection({
                     />
                 </div>
 
-                <div className="col-12 col-md-6 col-lg-3">
+                <div className="col-12 col-md-6 col-lg-4">
                     <CustomDropdown
                         label="Tipo di Carta"
                         id="type"
@@ -88,7 +90,7 @@ export default function FilterSection({
                     />
                 </div>
 
-                <div className="col-12 col-md-6 col-lg-3">
+                <div className="col-12 col-md-6 col-lg-4">
                     <CustomDropdown
                         label="Costo"
                         id="cost"
@@ -100,7 +102,8 @@ export default function FilterSection({
                     />
                 </div>
 
-                <div className="col-12 col-md-6 col-lg-3">
+                {/* Seconda riga - 2 filtri centrati */}
+                <div className="col-12 col-md-6 col-lg-4 offset-lg-2">
                     <CustomDropdown
                         label="Set"
                         id="set"
@@ -112,7 +115,20 @@ export default function FilterSection({
                     />
                 </div>
 
-                <div className="col-12 mt-2">
+                <div className="col-12 col-md-6 col-lg-4">
+                    <CustomDropdown
+                        label="Rarità"
+                        id="rarity"
+                        value={filters.rarity}
+                        onChange={setRarityFilter}
+                        options={RARITY_OPTIONS}
+                        isOpen={openDropdown === 'rarity'}
+                        onToggle={() => setOpenDropdown(openDropdown === 'rarity' ? null : 'rarity')}
+                    />
+                </div>
+
+                {/* Pulsante reset */}
+                <div className="col-12 mt-3 text-center">
                     <button
                         className="btn btn-sm"
                         onClick={resetFilters}
@@ -138,7 +154,7 @@ export default function FilterSection({
                             e.target.style.color = 'var(--text-secondary)';
                         }}
                     >
-                        🔄 Ripristina Filtri
+                        Ripristina Filtri
                     </button>
                 </div>
             </div>

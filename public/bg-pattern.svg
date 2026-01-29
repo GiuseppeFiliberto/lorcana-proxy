@@ -1,0 +1,82 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
+      <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(96, 165, 250, 0.02)" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="baseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1d3a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#252847;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2d3154;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Base gradient -->
+  <rect width="1920" height="1080" fill="url(#baseGradient)"/>
+  
+  <!-- Grid pattern -->
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+  
+  <!-- Curved lines like in Instagram post - Left side -->
+  <path d="M -100 200 Q 200 250, 400 150 T 800 200" 
+        fill="none" 
+        stroke="rgba(96, 165, 250, 0.15)" 
+        stroke-width="3"
+        filter="url(#glow)"/>
+  
+  <path d="M -100 350 Q 250 400, 500 300 T 900 350" 
+        fill="none" 
+        stroke="rgba(129, 140, 248, 0.12)" 
+        stroke-width="2.5"
+        filter="url(#glow)"/>
+  
+  <path d="M -100 500 Q 300 550, 600 450 T 1000 500" 
+        fill="none" 
+        stroke="rgba(96, 165, 250, 0.1)" 
+        stroke-width="2"
+        filter="url(#glow)"/>
+  
+  <path d="M -100 650 Q 350 700, 700 600 T 1100 650" 
+        fill="none" 
+        stroke="rgba(129, 140, 248, 0.08)" 
+        stroke-width="2"
+        filter="url(#glow)"/>
+  
+  <!-- Curved lines - Right side -->
+  <path d="M 2020 300 Q 1720 350, 1420 250 T 1020 300" 
+        fill="none" 
+        stroke="rgba(96, 165, 250, 0.15)" 
+        stroke-width="3"
+        filter="url(#glow)"/>
+  
+  <path d="M 2020 450 Q 1670 500, 1370 400 T 970 450" 
+        fill="none" 
+        stroke="rgba(129, 140, 248, 0.12)" 
+        stroke-width="2.5"
+        filter="url(#glow)"/>
+  
+  <path d="M 2020 600 Q 1620 650, 1320 550 T 920 600" 
+        fill="none" 
+        stroke="rgba(96, 165, 250, 0.1)" 
+        stroke-width="2"
+        filter="url(#glow)"/>
+  
+  <!-- Large curved swoosh in the middle -->
+  <path d="M 0 540 Q 480 400, 960 540 T 1920 540" 
+        fill="none" 
+        stroke="rgba(96, 165, 250, 0.08)" 
+        stroke-width="4"
+        filter="url(#glow)"/>
+  
+  <!-- Corner accents -->
+  <polygon points="0,0 200,0 0,200" fill="rgba(96, 165, 250, 0.04)"/>
+  <polygon points="1920,0 1720,0 1920,200" fill="rgba(129, 140, 248, 0.04)"/>
+  <polygon points="0,1080 200,1080 0,880" fill="rgba(129, 140, 248, 0.04)"/>
+  <polygon points="1920,1080 1720,1080 1920,880" fill="rgba(96, 165, 250, 0.04)"/>
+</svg>

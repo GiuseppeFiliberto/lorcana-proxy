@@ -104,7 +104,7 @@ export default function CardGrid({ cards, onRemoveCard }) {
                 </span>
             </div>
             <div className="text-center mb-4">
-                <h4 className="text-warning">
+                <h4 style={{ color: '#ffffff' }}>
                     Carte aggiunte: <span className="badge bg-warning text-light">{cards.length}</span>
                 </h4>
             </div>

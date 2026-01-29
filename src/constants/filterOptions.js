@@ -1,20 +1,20 @@
 // Filter options for Lorcana cards
 export const INK_OPTIONS = [
     { value: '', label: 'Tutti gli inchiostri' },
-    { value: 'Amber', label: '🟠 Amber' },
-    { value: 'Amethyst', label: '💜 Amethyst' },
-    { value: 'Emerald', label: '💚 Emerald' },
-    { value: 'Ruby', label: '❤️ Ruby' },
-    { value: 'Sapphire', label: '💙 Sapphire' },
-    { value: 'Steel', label: '⚫ Steel' }
+    { value: 'Amber', label: 'Amber' },
+    { value: 'Amethyst', label: 'Amethyst' },
+    { value: 'Emerald', label: 'Emerald' },
+    { value: 'Ruby', label: 'Ruby' },
+    { value: 'Sapphire', label: 'Sapphire' },
+    { value: 'Steel', label: 'Steel' }
 ];
 
 export const TYPE_OPTIONS = [
     { value: '', label: 'Tutti i tipi' },
-    { value: 'Glimmer', label: '👤 Character' },
-    { value: 'Action', label: '⚡ Action - Song' },
-    { value: 'Item', label: '🎁 Item' },
-    { value: 'Location', label: '🏰 Location' }
+    { value: 'Glimmer', label: 'Character' },
+    { value: 'Action', label: 'Action - Song' },
+    { value: 'Item', label: 'Item' },
+    { value: 'Location', label: 'Location' }
 ];
 
 export const COST_OPTIONS = [
@@ -40,5 +40,16 @@ export const SET_OPTIONS = [
     { value: '7', label: '7 - Archazia\'s Island' },
     { value: '8', label: '8 - Reign of Jafar' },
     { value: '9', label: '9 - Fabled' },
-    { value: '10', label: '10 - Whispers in the Well' }
+    { value: '10', label: '10 - Whispers in the Well' },
+    { value: '11', label: '11 - Winterspell' }
+
+];
+
+export const RARITY_OPTIONS = [
+    { value: '', label: 'Tutte le rarità' },
+    { value: 'Common', label: 'Common' },
+    { value: 'Uncommon', label: 'Uncommon' },
+    { value: 'Rare', label: 'Rare' },
+    { value: 'Super_rare', label: 'Super Rare' },
+    { value: 'Legendary', label: 'Legendary' }
 ];

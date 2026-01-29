@@ -4,8 +4,8 @@
 const imageCache = new Map();
 
 const PROXY_PREFIXES = [
-    'https://corsproxy.io/?',
     'https://api.allorigins.win/raw?url=',
+    'https://corsproxy.io/?',
     'https://thingproxy.freeboard.io/fetch/'
 ];
 

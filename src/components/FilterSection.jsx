@@ -65,8 +65,8 @@ export default function FilterSection({
             </div>
 
             <div className="row mt-3 g-3" ref={dropdownRef}>
-                {/* Prima riga - 3 filtri */}
-                <div className="col-12 col-md-6 col-lg-4">
+                {/* Prima riga - 2 filtri */}
+                <div className="col-12 col-md-6 col-lg-6">
                     <CustomDropdown
                         label="Inchiostro"
                         id="ink"
@@ -78,7 +78,7 @@ export default function FilterSection({
                     />
                 </div>
 
-                <div className="col-12 col-md-6 col-lg-4">
+                <div className="col-12 col-md-6 col-lg-6">
                     <CustomDropdown
                         label="Tipo di Carta"
                         id="type"
@@ -90,6 +90,7 @@ export default function FilterSection({
                     />
                 </div>
 
+                {/* Seconda riga - 3 filtri */}
                 <div className="col-12 col-md-6 col-lg-4">
                     <CustomDropdown
                         label="Costo"
@@ -102,8 +103,7 @@ export default function FilterSection({
                     />
                 </div>
 
-                {/* Seconda riga - 2 filtri centrati */}
-                <div className="col-12 col-md-6 col-lg-4 offset-lg-2">
+                <div className="col-12 col-md-6 col-lg-4">
                     <CustomDropdown
                         label="Set"
                         id="set"

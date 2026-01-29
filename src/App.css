@@ -647,6 +647,9 @@ a:hover {
     font-family: var(--font-display) !important;
     color: #ffffff !important;
     text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Toast customization */

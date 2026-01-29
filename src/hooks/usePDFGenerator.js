@@ -93,18 +93,31 @@ export const usePDFGenerator = () => {
 
             // Pre-carica tutte le immagini in parallelo per velocità
             console.log('Pre-caricamento immagini...');
-            const imagePromises = cards.map(card =>
-                loadImage(card.src, (failInfo) => {
+            const imagePromises = cards.map((card, index) => {
+                return loadImage(card.src, (failInfo) => {
                     setFailedImages(prev => {
                         if (prev.find(p => p.url === failInfo.url)) return prev;
                         return [...prev, failInfo];
                     });
-                }).catch(err => null) // Continua anche se un'immagine fallisce
-            );
+                })
+                    .then(img => ({ index, img }))
+                    .catch(err => ({ index, img: null })); // Cattura errori singoli
+            });
 
             // Aspetta il completamento di tutti i caricamenti in parallelo
-            const allImages = await Promise.all(imagePromises);
-            let loadedCount = allImages.filter(img => img !== null).length;
+            const loadResults = await Promise.all(imagePromises);
+            const allImages = new Array(totalCards).fill(null);
+            let loadedCount = 0;
+            
+            // Popola l'array con le immagini caricate
+            loadResults.forEach(result => {
+                if (result.img) {
+                    allImages[result.index] = result.img;
+                    loadedCount++;
+                }
+            });
+            
+            console.log(`Immagini caricate: ${loadedCount}/${totalCards}`);
             setProgress(Math.round((loadedCount / totalCards) * 30)); // Primo 30% per caricamento
 
             for (let page = 0; page < totalPages; page++) {
@@ -133,7 +146,7 @@ export const usePDFGenerator = () => {
                     try {
                         // Usa l'immagine pre-caricata se disponibile
                         const img = allImages[cardIndex];
-                        
+
                         if (img) {
                             let drawWidth = w;
                             let drawHeight = h;

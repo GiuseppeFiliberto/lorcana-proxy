@@ -362,7 +362,7 @@ a:hover {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     font-size: 1rem;
     letter-spacing: 0.05em;
     cursor: pointer;
@@ -371,6 +371,7 @@ a:hover {
     text-transform: uppercase;
     font-family: var(--font-display) !important;
     white-space: nowrap;
+    min-width: max-content;
 }
 
 .btn-accent::before {

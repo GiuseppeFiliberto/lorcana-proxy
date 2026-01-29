@@ -78,8 +78,8 @@ export const usePDFGenerator = () => {
             const marginX = (pageWidthMM - totalGridWidth) / 2;
             const marginY = (pageHeightMM - totalGridHeight) / 2;
 
-            // Ridotto DPI da 600 a 200 per performance migliori (ancora buona qualità)
-            const DPI = 200;
+            // Impostato DPI a 300 per qualità di stampa professionale
+            const DPI = 300;
             const mmToPx = mm => Math.round(mm / 25.4 * DPI);
 
             const { default: jsPDF } = await import('jspdf');

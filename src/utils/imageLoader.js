@@ -36,14 +36,14 @@ export const loadImage = async (src, onFail) => {
     // 1. Prova il caricamento diretto con no-cors mode
     try {
         console.log(`Tentando caricamento diretto di: ${src}`);
-        const response = await fetch(src, { 
+        const response = await fetch(src, {
             mode: 'no-cors',
             credentials: 'omit'
         });
-        
+
         if (response.ok || response.type === 'opaque') {
             const blob = await response.blob();
-            
+
             // Controlla se il blob è una vera immagine
             if (blob.type.startsWith('image/') || blob.size > 1000) {
                 const objectUrl = URL.createObjectURL(blob);
@@ -64,10 +64,10 @@ export const loadImage = async (src, onFail) => {
         try {
             const proxyUrl = proxyBuilder(src);
             console.log(`Tentando proxy: ${proxyUrl.substring(0, 50)}...`);
-            
+
             const response = await Promise.race([
                 fetch(proxyUrl),
-                new Promise((_, reject) => 
+                new Promise((_, reject) =>
                     setTimeout(() => reject(new Error('Timeout proxy')), 12000)
                 )
             ]);
@@ -77,7 +77,7 @@ export const loadImage = async (src, onFail) => {
             }
 
             const blob = await response.blob();
-            
+
             // Valida che sia un'immagine
             if (!blob.type.startsWith('image/')) {
                 console.warn(`Proxy ritorna tipo: ${blob.type}, size: ${blob.size}`);

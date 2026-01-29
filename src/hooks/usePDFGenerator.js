@@ -114,7 +114,7 @@ export const usePDFGenerator = () => {
             const loadResults = await Promise.all(imagePromises);
             const allImages = new Array(totalCards).fill(null);
             let loadedCount = 0;
-            
+
             // Popola l'array con le immagini caricate
             loadResults.forEach(result => {
                 if (result.img) {
@@ -122,7 +122,7 @@ export const usePDFGenerator = () => {
                     loadedCount++;
                 }
             });
-            
+
             console.log(`Immagini caricate: ${loadedCount}/${totalCards}`);
             setProgress(Math.round((loadedCount / totalCards) * 30)); // Primo 30% per caricamento
 

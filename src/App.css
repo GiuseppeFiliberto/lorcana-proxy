@@ -645,6 +645,7 @@ a:hover {
     text-transform: uppercase;
     letter-spacing: 0.15em;
     font-family: var(--font-display) !important;
+    color: #ffffff !important;
 }
 
 /* Toast customization */

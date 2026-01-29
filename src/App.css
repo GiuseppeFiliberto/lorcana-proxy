@@ -646,6 +646,7 @@ a:hover {
     letter-spacing: 0.15em;
     font-family: var(--font-display) !important;
     color: #ffffff !important;
+    text-align: center;
 }
 
 /* Toast customization */

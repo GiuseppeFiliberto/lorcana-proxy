@@ -3,14 +3,16 @@
 // Cache per le immagini già caricate
 const imageCache = new Map();
 
-const PROXY_PREFIXES = [
-    'https://api.allorigins.win/raw?url=',
-    'https://corsproxy.io/?',
-    'https://thingproxy.freeboard.io/fetch/'
-];
+// Single fast proxy - allorigins è il più affidabile
+const PROXY_URL = 'https://api.allorigins.win/raw?url=';
 
-const corsProxyUrl = (proxyPrefix, url) => {
-    return `${proxyPrefix}${encodeURIComponent(url)}`;
+const corsProxyUrl = (url) => {
+    return `${PROXY_URL}${encodeURIComponent(url)}`;
+};
+
+// Promise race helper - usa il primo che completa
+const racePromises = (promises) => {
+    return Promise.race(promises.filter(p => p !== null).map(p => Promise.resolve(p)));
 };
 
 export const loadImage = async (src, onFail) => {
@@ -32,76 +34,67 @@ export const loadImage = async (src, onFail) => {
         });
     }
 
-    const maxAttempts = 2; // Ridotto da 3 a 2
     let lastError = null;
 
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        // Try each proxy prefix
-        for (const prefix of PROXY_PREFIXES) {
-            const controller = new AbortController();
-            let timeoutId = null;
-
-            try {
-                timeoutId = setTimeout(() => controller.abort(), 15000); // Ridotto da 20s
-                const urlToFetch = corsProxyUrl(prefix, src);
-                const response = await fetch(urlToFetch, { signal: controller.signal });
-                clearTimeout(timeoutId);
-
-                if (!response.ok) throw new Error(`Fetch error ${response.status}`);
-
-                const contentType = (response.headers.get('content-type') || '').toLowerCase();
-                if (!contentType.startsWith('image/')) throw new Error('Risorsa non è un immagine');
-
-                const blob = await response.blob();
-                const objectUrl = URL.createObjectURL(blob);
-
-                const img = await new Promise((resolve, reject) => {
-                    const i = new window.Image();
-                    i.onload = () => {
-                        imageCache.set(src, i);
-                        resolve(i);
-                    };
-                    i.onerror = () => reject(new Error('Errore nel caricamento dell\'oggetto immagine'));
-                    i.src = objectUrl;
-                });
-
-                setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-                return img;
-            } catch (err) {
-                lastError = err;
-                if (timeoutId) clearTimeout(timeoutId);
-            }
-        }
-
-        // Try direct image load as fallback
-        try {
-            const directImg = await new Promise((resolve, reject) => {
+    // Prova il caricamento diretto PRIMA (più veloce se funziona)
+    try {
+        const directImg = await Promise.race([
+            // Timeout aggressivo per il caricamento diretto
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout diretto')), 8000)
+            ),
+            // Effettivo caricamento
+            new Promise((resolve, reject) => {
                 const i = new window.Image();
                 i.crossOrigin = 'anonymous';
-                let t = setTimeout(() => {
-                    i.onload = i.onerror = null;
-                    reject(new Error('Timeout caricamento immagine diretta'));
-                }, 10000); // Ridotto da 15s
                 i.onload = () => {
-                    clearTimeout(t);
                     imageCache.set(src, i);
                     resolve(i);
                 };
-                i.onerror = () => {
-                    clearTimeout(t);
-                    reject(new Error('Immagine diretta non caricata'));
-                };
+                i.onerror = () => reject(new Error('Immagine non disponibile direttamente'));
                 i.src = src;
-            });
-            return directImg;
-        } catch (errDirect) {
-            lastError = errDirect;
-        }
+            })
+        ]);
+        return directImg;
+    } catch (errDirect) {
+        lastError = errDirect;
+    }
 
-        // Ridotto backoff
-        if (attempt < maxAttempts) {
-            await new Promise(r => setTimeout(r, 300));
-        }
+    // Se il caricamento diretto fallisce, usa il proxy
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        const response = await fetch(corsProxyUrl(src), { 
+            signal: controller.signal,
+            // Aggiunge hint per il caching del browser
+            headers: { 'Cache-Control': 'max-age=3600' }
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) throw new Error(`Fetch error ${response.status}`);
+
+        const contentType = (response.headers.get('content-type') || '').toLowerCase();
+        if (!contentType.startsWith('image/')) throw new Error('Risorsa non è un immagine');
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+
+        const img = await new Promise((resolve, reject) => {
+            const i = new window.Image();
+            i.onload = () => {
+                imageCache.set(src, i);
+                resolve(i);
+            };
+            i.onerror = () => reject(new Error('Errore nel caricamento dell\'oggetto immagine'));
+            i.src = objectUrl;
+        });
+
+        // Revoca il blob URL dopo il caricamento
+        URL.revokeObjectURL(objectUrl);
+        return img;
+    } catch (err) {
+        lastError = err;
     }
 
     // All attempts failed

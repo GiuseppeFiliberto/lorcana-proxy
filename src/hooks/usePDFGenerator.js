@@ -47,13 +47,15 @@ export const usePDFGenerator = () => {
             const totalCards = cards.length;
 
             const updateProgress = () => {
-                processedCount = Math.min(processedCount, totalCards);
-                const pct = totalCards > 0 ? Math.round((processedCount / totalCards) * 100) : 100;
+                // I primi 30% per caricamento, ulteriori 70% per rendering
+                const renderProgress = (processedCount / totalCards) * 70;
+                const totalProgress = 30 + renderProgress;
+                const pct = Math.min(Math.round(totalProgress), 99); // Max 99% prima di completamento
                 setProgress(pct);
 
                 if (processedCount > 0) {
                     const elapsed = (Date.now() - startTime) / 1000;
-                    const avgPerCard = elapsed / processedCount;
+                    const avgPerCard = elapsed / (processedCount + loadedCount);
                     const remaining = Math.max(0, totalCards - processedCount);
                     const etaSeconds = Math.round(avgPerCard * remaining);
                     setEta(etaSeconds);
@@ -76,8 +78,8 @@ export const usePDFGenerator = () => {
             const marginX = (pageWidthMM - totalGridWidth) / 2;
             const marginY = (pageHeightMM - totalGridHeight) / 2;
 
-            // Ridotto DPI da 600 a 300 per performance migliori (ancora ottima qualità di stampa)
-            const DPI = 300;
+            // Ridotto DPI da 600 a 200 per performance migliori (ancora buona qualità)
+            const DPI = 200;
             const mmToPx = mm => Math.round(mm / 25.4 * DPI);
 
             const { default: jsPDF } = await import('jspdf');
@@ -88,6 +90,22 @@ export const usePDFGenerator = () => {
             });
 
             const totalPages = Math.ceil(cards.length / 9);
+
+            // Pre-carica tutte le immagini in parallelo per velocità
+            console.log('Pre-caricamento immagini...');
+            const imagePromises = cards.map(card =>
+                loadImage(card.src, (failInfo) => {
+                    setFailedImages(prev => {
+                        if (prev.find(p => p.url === failInfo.url)) return prev;
+                        return [...prev, failInfo];
+                    });
+                }).catch(err => null) // Continua anche se un'immagine fallisce
+            );
+
+            // Aspetta il completamento di tutti i caricamenti in parallelo
+            const allImages = await Promise.all(imagePromises);
+            let loadedCount = allImages.filter(img => img !== null).length;
+            setProgress(Math.round((loadedCount / totalCards) * 30)); // Primo 30% per caricamento
 
             for (let page = 0; page < totalPages; page++) {
                 const canvas = document.createElement('canvas');
@@ -113,31 +131,39 @@ export const usePDFGenerator = () => {
                     const h = mmToPx(cardHeightMM);
 
                     try {
-                        const img = await loadImage(card.src, (failInfo) => {
-                            setFailedImages(prev => {
-                                if (prev.find(p => p.url === failInfo.url)) return prev;
-                                return [...prev, failInfo];
-                            });
-                        });
+                        // Usa l'immagine pre-caricata se disponibile
+                        const img = allImages[cardIndex];
+                        
+                        if (img) {
+                            let drawWidth = w;
+                            let drawHeight = h;
+                            const imgRatio = img.width / img.height;
+                            const cardRatio = w / h;
 
-                        let drawWidth = w;
-                        let drawHeight = h;
-                        const imgRatio = img.width / img.height;
-                        const cardRatio = w / h;
+                            if (imgRatio > cardRatio) {
+                                drawHeight = drawWidth / imgRatio;
+                            } else {
+                                drawWidth = drawHeight * imgRatio;
+                            }
 
-                        if (imgRatio > cardRatio) {
-                            drawHeight = drawWidth / imgRatio;
+                            const xOffset = x + (w - drawWidth) / 2;
+                            const yOffset = y + (h - drawHeight) / 2;
+
+                            ctx.drawImage(img, xOffset, yOffset, drawWidth, drawHeight);
+                            ctx.strokeStyle = '#000000';
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(x, y, w, h);
                         } else {
-                            drawWidth = drawHeight * imgRatio;
+                            // Se l'immagine non è stata caricata, disegna un rettangolo grigio
+                            ctx.fillStyle = '#cccccc';
+                            ctx.fillRect(x, y, w, h);
+                            ctx.strokeStyle = '#000000';
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(x, y, w, h);
+                            ctx.fillStyle = '#333';
+                            ctx.font = 'bold 16px Arial';
+                            ctx.fillText('Non caricata', x + 10, y + h / 2);
                         }
-
-                        const xOffset = x + (w - drawWidth) / 2;
-                        const yOffset = y + (h - drawHeight) / 2;
-
-                        ctx.drawImage(img, xOffset, yOffset, drawWidth, drawHeight);
-                        ctx.strokeStyle = '#000000';
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(x, y, w, h);
                     } catch (error) {
                         ctx.fillStyle = '#cccccc';
                         ctx.fillRect(x, y, w, h);
@@ -146,7 +172,7 @@ export const usePDFGenerator = () => {
                         ctx.strokeRect(x, y, w, h);
                         ctx.fillStyle = '#333';
                         ctx.font = 'bold 16px Arial';
-                        ctx.fillText('Immagine non trovata', x + 10, y + h / 2);
+                        ctx.fillText('Errore', x + 10, y + h / 2);
                     } finally {
                         processedCount++;
                         updateProgress();
@@ -156,7 +182,7 @@ export const usePDFGenerator = () => {
                 if (isCancelled) break;
 
                 // Usa qualità JPEG più bassa per ridurre dimensione e tempo di elaborazione
-                const imgData = canvas.toDataURL('image/jpeg', 0.85);
+                const imgData = canvas.toDataURL('image/jpeg', 0.82);
                 if (page === 0) {
                     pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthMM, pageHeightMM);
                 } else {

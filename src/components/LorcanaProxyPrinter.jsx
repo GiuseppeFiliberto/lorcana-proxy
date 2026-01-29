@@ -183,7 +183,7 @@ export default function LorcanaProxyPrinter() {
                                             {pdfHook.progress}%
                                         </div>
                                     </div>
-                                    <div className="mt-2 text-center text-muted" style={{ color: '#ffffff' }}>
+                                    <div className="mt-2 text-center text-muted" style={{ color: '#ffffff !important' }}>
                                         {pdfHook.eta === null ? 'Calcolo tempo stimato...' : `Tempo stimato: ${pdfHook.formatEta(pdfHook.eta)}`}
                                     </div>
                                 </div>

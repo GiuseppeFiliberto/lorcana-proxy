@@ -78,7 +78,7 @@ export const usePDFGenerator = () => {
             const marginX = (pageWidthMM - totalGridWidth) / 2;
             const marginY = (pageHeightMM - totalGridHeight) / 2;
 
-            // Impostato DPI a 300 per qualità di stampa professionale
+            // DPI 300 per qualità, ma ottimizzato per prestazioni
             const DPI = 300;
             const mmToPx = mm => Math.round(mm / 25.4 * DPI);
 
@@ -91,23 +91,29 @@ export const usePDFGenerator = () => {
 
             const totalPages = Math.ceil(cards.length / 9);
 
-            // Pre-carica tutte le immagini in parallelo per velocità
+            // Pre-carica tutte le immagini in parallelo per velocità (con limite di 5 simultanee)
             console.log('Pre-caricamento immagini...');
             const imagePromises = cards.map((card, index) => {
-                return loadImage(card.src, (failInfo) => {
-                    setFailedImages(prev => {
-                        if (prev.find(p => p.url === failInfo.url)) return prev;
-                        return [...prev, failInfo];
-                    });
-                })
-                    .then(img => {
-                        console.log(`Immagine ${index} caricata:`, img.width, 'x', img.height);
-                        return { index, img };
+                return (async () => {
+                    // Rate limiting: attendi se troppi caricamenti
+                    while (index % 5 !== 0 && imagePromises.filter((p, i) => i < index).length > 5) {
+                        await new Promise(r => setTimeout(r, 50));
+                    }
+                    return loadImage(card.src, (failInfo) => {
+                        setFailedImages(prev => {
+                            if (prev.find(p => p.url === failInfo.url)) return prev;
+                            return [...prev, failInfo];
+                        });
                     })
-                    .catch(err => {
-                        console.error(`Errore caricamento immagine ${index}:`, err);
-                        return { index, img: null };
-                    });
+                        .then(img => {
+                            console.log(`Immagine ${index} caricata:`, img.width, 'x', img.height);
+                            return { index, img };
+                        })
+                        .catch(err => {
+                            console.error(`Errore caricamento immagine ${index}:`, err);
+                            return { index, img: null };
+                        });
+                })();
             });
 
             // Aspetta il completamento di tutti i caricamenti in parallelo
@@ -208,8 +214,8 @@ export const usePDFGenerator = () => {
 
                 if (isCancelled) break;
 
-                // Usa qualità JPEG più bassa per ridurre dimensione e tempo di elaborazione
-                const imgData = canvas.toDataURL('image/jpeg', 0.82);
+                // Qualità JPEG ridotta a 0.75 per prestazioni migliori (qualità ancora buona)
+                const imgData = canvas.toDataURL('image/jpeg', 0.75);
                 if (page === 0) {
                     pdf.addImage(imgData, 'JPEG', 0, 0, pageWidthMM, pageHeightMM);
                 } else {

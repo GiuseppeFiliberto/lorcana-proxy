@@ -93,13 +93,20 @@ export const usePDFGenerator = () => {
 
             // Pre-carica tutte le immagini in parallelo per velocità (con limite di 5 simultanee)
             console.log('Pre-caricamento immagini...');
-            const imagePromises = cards.map((card, index) => {
-                return (async () => {
-                    // Rate limiting: attendi se troppi caricamenti
-                    while (index % 5 !== 0 && imagePromises.filter((p, i) => i < index).length > 5) {
-                        await new Promise(r => setTimeout(r, 50));
-                    }
-                    return loadImage(card.src, (failInfo) => {
+            
+            // Helper per rate limiter semplice
+            let activeLoads = 0;
+            const MAX_CONCURRENT = 5;
+            
+            const loadImageWithLimit = async (card, index) => {
+                // Attendi se troppi caricamenti simultanei
+                while (activeLoads >= MAX_CONCURRENT) {
+                    await new Promise(r => setTimeout(r, 50));
+                }
+                
+                activeLoads++;
+                try {
+                    return await loadImage(card.src, (failInfo) => {
                         setFailedImages(prev => {
                             if (prev.find(p => p.url === failInfo.url)) return prev;
                             return [...prev, failInfo];
@@ -113,8 +120,12 @@ export const usePDFGenerator = () => {
                             console.error(`Errore caricamento immagine ${index}:`, err);
                             return { index, img: null };
                         });
-                })();
-            });
+                } finally {
+                    activeLoads--;
+                }
+            };
+            
+            const imagePromises = cards.map((card, index) => loadImageWithLimit(card, index));
 
             // Aspetta il completamento di tutti i caricamenti in parallelo
             const loadResults = await Promise.all(imagePromises);

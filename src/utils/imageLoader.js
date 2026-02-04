@@ -5,16 +5,31 @@ const imageCache = new Map();
 
 // Rate limiter per evitare congestione
 let activeRequests = 0;
-const MAX_CONCURRENT_REQUESTS = 5;
+const MAX_CONCURRENT_REQUESTS = 3; // Ridotto per performance
 
-// Proxy service più affidabile - ottimizzato per velocità
+// Rileva supporto WebP e AVIF
+const getImageFormat = () => {
+    if (typeof navigator === 'undefined') return 'jpg';
+    const canvas = document.createElement('canvas');
+    return (canvas.toDataURL('image/webp').indexOf('image/webp') === 5) ? 'webp' : 'jpg';
+};
+
+const SUPPORTED_FORMAT = getImageFormat();
+
+// Proxy service più affidabile - ottimizzato per velocità con format moderni
 const PROXY_SERVICES = [
-    // weserv.nl con ridimensionamento per velocità
-    url => `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=400&default=blank`,
-    // Cloudinary con dimensione ridotta
-    url => `https://res.cloudinary.com/demo/image/fetch/w_400/${encodeURIComponent(url)}`,
-    // Fallback
-    url => `https://proxy.cors.sh/${encodeURIComponent(url)}`,
+    // weserv.nl - aspect ratio carta Lorcana (2.5:3.5) mantenuto
+    url => {
+        const format = SUPPORTED_FORMAT === 'webp' ? '&format=webp' : '';
+        return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=600&h=840&fit=cover&q=85${format}`;
+    },
+    // Cloudinary - aspect ratio corretto
+    url => {
+        const format = SUPPORTED_FORMAT === 'webp' ? 'f_auto' : 'f_jpg';
+        return `https://res.cloudinary.com/demo/image/fetch/${format},w_600,h_840,c_fill,q_auto/${encodeURIComponent(url)}`;
+    },
+    // Fallback weserv - larghezza massima con aspect ratio
+    url => `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=600&h=840&q=85`,
 ];
 
 export const loadImage = async (src, onFail) => {
@@ -46,17 +61,17 @@ export const loadImage = async (src, onFail) => {
     try {
         let lastError = null;
 
-        // 1. Prova il caricamento diretto con no-cors mode (timeout ridotto a 8s)
+        // 1. Prova il caricamento diretto con no-cors mode (timeout ridotto a 5s)
         try {
             console.log(`Tentando caricamento diretto di: ${src}`);
             const response = await Promise.race([
                 fetch(src, {
                     mode: 'no-cors',
                     credentials: 'omit',
-                    signal: AbortSignal.timeout(8000)
+                    signal: AbortSignal.timeout(5000) // Ridotto da 8s
                 }),
                 new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Timeout diretto')), 8000)
+                    setTimeout(() => reject(new Error('Timeout diretto')), 5000)
                 )
             ]);
 
@@ -78,7 +93,7 @@ export const loadImage = async (src, onFail) => {
             console.log(`✗ Caricamento diretto fallito: ${err.message}`);
         }
 
-        // 2. Prova con i servizi proxy (timeout per proxy più generoso: 15s per tentativo)
+        // 2. Prova con i servizi proxy (timeout più aggressivo: 10s per tentativo)
         for (const proxyBuilder of PROXY_SERVICES) {
             try {
                 const proxyUrl = proxyBuilder(src);
@@ -86,10 +101,10 @@ export const loadImage = async (src, onFail) => {
 
                 const response = await Promise.race([
                     fetch(proxyUrl, {
-                        signal: AbortSignal.timeout(15000)
+                        signal: AbortSignal.timeout(10000) // Ridotto da 15s
                     }),
                     new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Timeout proxy')), 15000)
+                        setTimeout(() => reject(new Error('Timeout proxy')), 10000)
                     )
                 ]);
 
@@ -139,9 +154,9 @@ const loadImageFromUrl = (url) => {
             if (!loaded) {
                 img.onload = null;
                 img.onerror = null;
-                reject(new Error('Timeout caricamento immagine (15s)'));
+                reject(new Error('Timeout caricamento immagine (10s)'));
             }
-        }, 15000); // Aumentato a 15s
+        }, 10000); // Ridotto da 15s
 
         img.onload = () => {
             loaded = true;

@@ -5,7 +5,7 @@ export default function CardGrid({ cards, onRemoveCard }) {
         for (let i = 0; i < cards.length; i++) {
             const card = cards[i];
             slots.push(
-                <div key={i} className="col-md-4 mb-3 d-flex justify-content-center">
+                <div key={i} className="col-6 col-sm-6 col-md-4 mb-2 d-flex justify-content-center">
                     <div className={`card-slot ${card ? 'filled' : ''}`} style={{
                         aspectRatio: '2.5/3.5',
                         width: '100%',
@@ -26,6 +26,8 @@ export default function CardGrid({ cards, onRemoveCard }) {
                                 <img
                                     src={card.src}
                                     alt={`Carta ${i + 1}`}
+                                    loading="lazy"
+                                    decoding="async"
                                     style={{
                                         width: '100%',
                                         height: '100%',
@@ -67,7 +69,7 @@ export default function CardGrid({ cards, onRemoveCard }) {
         if (remainder !== 0) {
             for (let i = 0; i < 3 - remainder; i++) {
                 slots.push(
-                    <div key={`empty-${i}`} className="col-md-4 mb-3 d-flex justify-content-center">
+                    <div key={`empty-${i}`} className="col-6 col-sm-6 col-md-4 mb-2 d-flex justify-content-center">
                         <div className="card-slot" style={{
                             aspectRatio: '2.5/3.5',
                             width: '100%',
@@ -103,12 +105,12 @@ export default function CardGrid({ cards, onRemoveCard }) {
                     {cards.length > 0 ? `PDF: ${Math.ceil(cards.length / 9)} pagina${Math.ceil(cards.length / 9) > 1 ? 'e' : ''}` : 'Nessuna pagina'}
                 </span>
             </div>
-            <div className="text-center mb-4">
-                <h4 style={{ color: '#ffffff' }}>
+            <div className="text-center mb-3">
+                <h4 style={{ color: '#ffffff', marginBottom: '0' }}>
                     Carte aggiunte: <span className="badge bg-warning text-light">{cards.length}</span>
                 </h4>
             </div>
-            <div className="row">
+            <div className="row g-2">
                 {renderCardSlots()}
             </div>
         </div>

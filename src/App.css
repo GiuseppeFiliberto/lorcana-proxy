@@ -541,6 +541,8 @@ a:hover {
     position: relative;
     border: 2px solid rgba(155, 126, 255, 0.2);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.05);
+    max-width: 260px;
+    width: 100%;
 }
 
 .card-slot:hover {
@@ -666,6 +668,7 @@ a:hover {
     border-radius: var(--radius-lg) !important;
     box-shadow: var(--shadow-3) !important;
     padding: var(--spacing-lg) var(--spacing-xl) !important;
+    will-change: transform;
 }
 
 .Toastify__toast-body {
@@ -677,6 +680,21 @@ a:hover {
 .Toastify__progress-bar {
     background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%) !important;
     height: 3px !important;
+}
+
+.Toastify__toast-container {
+    width: auto !important;
+    padding: var(--spacing-md) !important;
+}
+
+@media (max-width: 640px) {
+    .Toastify__toast-container {
+        left: var(--spacing-sm) !important;
+        right: var(--spacing-sm) !important;
+        top: var(--spacing-sm) !important;
+        width: auto !important;
+        padding: 0 !important;
+    }
 }
 
 .Toastify__toast--success {
@@ -728,11 +746,6 @@ a:hover {
         width: 100%;
     }
 
-    .card-slot {
-        max-width: 200px;
-        margin: 0 auto;
-    }
-
     .actions-panel {
         flex-direction: column;
         gap: var(--spacing-md);
@@ -748,34 +761,90 @@ a:hover {
 
     .search-panel,
     .cards-panel {
-        padding: var(--spacing-lg);
+        padding: var(--spacing-md);
+    }
+
+    .Toastify__toast {
+        padding: var(--spacing-md) var(--spacing-lg) !important;
+        font-size: 0.9rem !important;
     }
 }
 
 @media (max-width: 576px) {
     h1 {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
     }
 
     h3 {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
     }
 
     .container {
-        padding-left: var(--spacing-md);
-        padding-right: var(--spacing-md);
+        padding-left: var(--spacing-sm);
+        padding-right: var(--spacing-sm);
+    }
+
+    .header-panel {
+        padding: var(--spacing-lg) var(--spacing-md) !important;
+        margin-bottom: var(--spacing-md) !important;
     }
 
     .header-panel h1 {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
     }
 
     .header-panel h2 {
-        font-size: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .header-panel p {
+        font-size: 0.9rem;
     }
 
     .card-slot {
-        max-width: 160px;
+        max-width: none;
+    }
+
+    .remove-card {
+        width: 26px !important;
+        height: 26px !important;
+        font-size: 10px !important;
+    }
+
+    .Toastify__toast {
+        padding: var(--spacing-sm) var(--spacing-md) !important;
+        font-size: 0.85rem !important;
+        margin-bottom: var(--spacing-sm) !important;
+        min-height: auto !important;
+        max-width: calc(100vw - 16px) !important;
+    }
+
+    .Toastify__toast-body {
+        padding: 0 !important;
+        font-size: 0.85rem !important;
+        line-height: 1.4 !important;
+    }
+
+    .Toastify__progress-bar {
+        height: 2px !important;
+    }
+
+    .search-panel,
+    .cards-panel {
+        padding: var(--spacing-sm) !important;
+    }
+
+    .search-controls {
+        gap: var(--spacing-xs) !important;
+    }
+
+    .actions-panel {
+        gap: var(--spacing-xs) !important;
+    }
+
+    .badge {
+        padding: 0.35rem 0.75rem !important;
+        font-size: 0.8rem !important;
     }
 }
 
@@ -1117,7 +1186,7 @@ er Styling */
     z-index: 10;
 }
 
-/* URL section should be below filters */
+/* URL section styling */
 .url-section {
-    /* No position or z-index to avoid stacking context */
+    position: relative;
 }

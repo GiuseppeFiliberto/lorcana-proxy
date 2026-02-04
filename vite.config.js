@@ -5,19 +5,32 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    },
+    cssCodeSplit: true,
+    sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('html2canvas')) return 'html2canvas';
-            if (id.includes('jspdf')) return 'jspdf';
-            if (id.includes('react-toastify')) return 'toastify';
-            if (id.includes('bootstrap')) return 'bootstrap';
-            if (id.includes('react') || id.includes('react-dom')) return 'react-vendor';
-            return 'vendor';
-          }
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'html2canvas': ['html2canvas'],
+          'jspdf': ['jspdf'],
+          'toastify': ['react-toastify'],
+          'bootstrap': ['bootstrap']
         }
       }
+    },
+    chunkSizeWarningLimit: 500,
+    assetsInlineLimit: 4096
+  },
+  server: {
+    headers: {
+      'Cache-Control': 'max-age=0'
     }
   }
 })

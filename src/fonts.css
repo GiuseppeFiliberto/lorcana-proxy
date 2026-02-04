@@ -1,3 +1,6 @@
+/* Fallback se Akira non carica - usa Teko da Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&display=swap');
+
 /* Akira Expanded Font - Esports/Cyberpunk Style */
 @font-face {
     font-family: 'Akira Expanded';
@@ -6,6 +9,3 @@
     font-style: normal;
     font-display: swap;
 }
-
-/* Fallback se Akira non carica - usa Teko da Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&display=swap');

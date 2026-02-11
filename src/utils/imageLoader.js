@@ -5,7 +5,7 @@ const imageCache = new Map();
 
 // Rate limiter per evitare congestione
 let activeRequests = 0;
-const MAX_CONCURRENT_REQUESTS = 3; // Ridotto per performance
+const MAX_CONCURRENT_REQUESTS = 6; // Aumentato a 6 per migliore throughput
 
 // Rileva supporto WebP e AVIF
 const getImageFormat = () => {
@@ -31,6 +31,24 @@ const PROXY_SERVICES = [
     // Fallback weserv - larghezza massima con aspect ratio
     url => `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=600&h=840&q=85`,
 ];
+
+// Funzione helper per retry con backoff esponenziale
+const retryWithBackoff = async (fn, maxRetries = 2, initialDelay = 500) => {
+    let lastError = null;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            return await fn();
+        } catch (err) {
+            lastError = err;
+            if (attempt < maxRetries) {
+                const delay = initialDelay * Math.pow(2, attempt);
+                console.log(`Retry ${attempt + 1}/${maxRetries} dopo ${delay}ms: ${err.message}`);
+                await new Promise(r => setTimeout(r, delay));
+            }
+        }
+    }
+    throw lastError;
+};
 
 export const loadImage = async (src, onFail) => {
     // Controlla cache
@@ -61,70 +79,77 @@ export const loadImage = async (src, onFail) => {
     try {
         let lastError = null;
 
-        // 1. Prova il caricamento diretto con no-cors mode (timeout ridotto a 5s)
+        // 1. Prova il caricamento diretto con retry
         try {
             console.log(`Tentando caricamento diretto di: ${src}`);
-            const response = await Promise.race([
-                fetch(src, {
-                    mode: 'no-cors',
-                    credentials: 'omit',
-                    signal: AbortSignal.timeout(5000) // Ridotto da 8s
-                }),
-                new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Timeout diretto')), 5000)
-                )
-            ]);
+            const img = await retryWithBackoff(async () => {
+                const response = await Promise.race([
+                    fetch(src, {
+                        mode: 'no-cors',
+                        credentials: 'omit',
+                        signal: AbortSignal.timeout(12000)
+                    }),
+                    new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('Timeout diretto')), 12000)
+                    )
+                ]);
 
-            if (response.ok || response.type === 'opaque') {
-                const blob = await response.blob();
-
-                // Controlla se il blob è una vera immagine
-                if (blob.type.startsWith('image/') || blob.size > 1000) {
-                    const objectUrl = URL.createObjectURL(blob);
-                    const img = await loadImageFromUrl(objectUrl);
-                    URL.revokeObjectURL(objectUrl);
-                    imageCache.set(src, img);
-                    console.log(`✓ Immagine caricata direttamente: ${src}`);
-                    return img;
+                if (response.ok || response.type === 'opaque') {
+                    const blob = await response.blob();
+                    if (blob.type.startsWith('image/') || blob.size > 1000) {
+                        const objectUrl = URL.createObjectURL(blob);
+                        const img = await loadImageFromUrl(objectUrl);
+                        URL.revokeObjectURL(objectUrl);
+                        return img;
+                    }
                 }
-            }
+                throw new Error('Risposta non è un\'immagine valida');
+            }, 1, 300); // 1 retry per caricamento diretto
+
+            imageCache.set(src, img);
+            console.log(`✓ Immagine caricata direttamente: ${src}`);
+            return img;
         } catch (err) {
             lastError = err;
             console.log(`✗ Caricamento diretto fallito: ${err.message}`);
         }
 
-        // 2. Prova con i servizi proxy (timeout più aggressivo: 10s per tentativo)
+        // 2. Prova con i servizi proxy con retry
         for (const proxyBuilder of PROXY_SERVICES) {
             try {
                 const proxyUrl = proxyBuilder(src);
                 console.log(`Tentando proxy: ${proxyUrl.substring(0, 50)}...`);
 
-                const response = await Promise.race([
-                    fetch(proxyUrl, {
-                        signal: AbortSignal.timeout(10000) // Ridotto da 15s
-                    }),
-                    new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Timeout proxy')), 10000)
-                    )
-                ]);
+                const img = await retryWithBackoff(async () => {
+                    const response = await Promise.race([
+                        fetch(proxyUrl, {
+                            signal: AbortSignal.timeout(15000)
+                        }),
+                        new Promise((_, reject) =>
+                            setTimeout(() => reject(new Error('Timeout proxy')), 15000)
+                        )
+                    ]);
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                const blob = await response.blob();
-
-                // Valida che sia un'immagine
-                if (!blob.type.startsWith('image/')) {
-                    console.warn(`Proxy ritorna tipo: ${blob.type}, size: ${blob.size}`);
-                    if (blob.size < 1000) {
-                        throw new Error('Risposta proxy troppo piccola - non è un\'immagine');
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
                     }
-                }
 
-                const objectUrl = URL.createObjectURL(blob);
-                const img = await loadImageFromUrl(objectUrl);
-                URL.revokeObjectURL(objectUrl);
+                    const blob = await response.blob();
+
+                    // Valida che sia un'immagine
+                    if (!blob.type.startsWith('image/')) {
+                        console.warn(`Proxy ritorna tipo: ${blob.type}, size: ${blob.size}`);
+                        if (blob.size < 1000) {
+                            throw new Error('Risposta proxy troppo piccola - non è un\'immagine');
+                        }
+                    }
+
+                    const objectUrl = URL.createObjectURL(blob);
+                    const img = await loadImageFromUrl(objectUrl);
+                    URL.revokeObjectURL(objectUrl);
+                    return img;
+                }, 2, 300); // 2 retries per proxy service
+
                 imageCache.set(src, img);
                 console.log(`✓ Immagine caricata da proxy`);
                 return img;
@@ -154,9 +179,9 @@ const loadImageFromUrl = (url) => {
             if (!loaded) {
                 img.onload = null;
                 img.onerror = null;
-                reject(new Error('Timeout caricamento immagine (10s)'));
+                reject(new Error('Timeout caricamento immagine (20s)'));
             }
-        }, 10000); // Ridotto da 15s
+        }, 20000); // 20s per immagini da proxy
 
         img.onload = () => {
             loaded = true;

@@ -93,17 +93,17 @@ export const usePDFGenerator = () => {
 
             // Pre-carica tutte le immagini in parallelo per velocità (con limite di 5 simultanee)
             console.log('Pre-caricamento immagini...');
-            
+
             // Helper per rate limiter semplice
             let activeLoads = 0;
-            const MAX_CONCURRENT = 5;
-            
+            const MAX_CONCURRENT = 6; // Aumentato da 5
+
             const loadImageWithLimit = async (card, index) => {
                 // Attendi se troppi caricamenti simultanei
                 while (activeLoads >= MAX_CONCURRENT) {
                     await new Promise(r => setTimeout(r, 50));
                 }
-                
+
                 activeLoads++;
                 try {
                     return await loadImage(card.src, (failInfo) => {
@@ -124,7 +124,7 @@ export const usePDFGenerator = () => {
                     activeLoads--;
                 }
             };
-            
+
             const imagePromises = cards.map((card, index) => loadImageWithLimit(card, index));
 
             // Aspetta il completamento di tutti i caricamenti in parallelo

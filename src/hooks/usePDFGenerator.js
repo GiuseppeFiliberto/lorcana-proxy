@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { toast } from 'react-toastify';
 import { loadImage } from '../utils/imageLoader';
 
 export const usePDFGenerator = () => {
@@ -23,7 +24,7 @@ export const usePDFGenerator = () => {
             if (currentFetchController.current) {
                 currentFetchController.current.abort();
             }
-        } catch (e) { /* ignore */ }
+        } catch { /* ignore */ }
         setIsRendering(false);
         setProgress(0);
         setEta(null);
@@ -31,9 +32,20 @@ export const usePDFGenerator = () => {
 
     const generatePDF = async (cards) => {
         if (cards.length === 0) {
-            alert('Aggiungi almeno una carta prima di generare il PDF!');
+            toast.error('Aggiungi almeno una carta prima di generare il PDF!');
             return;
         }
+
+        // Warn if there are many cards (potential for timeout)
+        if (cards.length > 50) {
+            toast.warn('⚠️ Stai generando un PDF con molte carte. Potrebbe richiedere del tempo. Se hai problemi di caricamento, prova con meno carte alla volta.', {
+                autoClose: 6000
+            });
+        }
+
+        // Global timeout to prevent infinite loading (5 minutes)
+        const GLOBAL_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
+        let globalTimeoutId = null;
 
         try {
             setIsCancelled(false);
@@ -45,18 +57,35 @@ export const usePDFGenerator = () => {
             const startTime = Date.now();
             let processedCount = 0;
             const totalCards = cards.length;
+            let loadedCount = 0; // immagini caricate finora
+
+            // Set up global timeout
+            globalTimeoutId = setTimeout(() => {
+                console.warn('PDF generation timed out after 5 minutes');
+                setIsCancelled(true);
+                setIsRendering(false);
+                setProgress(0);
+                setEta(null);
+                toast.error('⏰ Generazione PDF interrotta: timeout di 5 minuti superato. Alcuni utenti potrebbero avere problemi di connessione alle immagini. Riprova con meno carte o usa una connessione più stabile.', {
+                    autoClose: 8000,
+                    position: "top-center"
+                });
+            }, GLOBAL_TIMEOUT);
 
             const updateProgress = () => {
-                // I primi 30% per caricamento, ulteriori 70% per rendering
-                const renderProgress = (processedCount / totalCards) * 70;
-                const totalProgress = 30 + renderProgress;
-                const pct = Math.min(Math.round(totalProgress), 99); // Max 99% prima di completamento
+                // Primo 30% per caricamento immagini, ultimi 70% per rendering
+                const loadRatio = totalCards > 0 ? loadedCount / totalCards : 0;
+                const renderRatio = totalCards > 0 ? processedCount / totalCards : 0;
+                const totalProgress = Math.min((loadRatio * 30) + (renderRatio * 70), 100);
+                const pct = Math.min(Math.round(totalProgress), 99); // non raggiungere 100 finché non hai creato il blob
                 setProgress(pct);
 
-                if (processedCount > 0) {
+                // ETA basata su entrambi i contatori
+                const finished = processedCount + loadedCount;
+                if (finished > 0) {
                     const elapsed = (Date.now() - startTime) / 1000;
-                    const avgPerCard = elapsed / (processedCount + loadedCount);
-                    const remaining = Math.max(0, totalCards - processedCount);
+                    const avgPerCard = elapsed / finished;
+                    const remaining = Math.max(0, totalCards - finished);
                     const etaSeconds = Math.round(avgPerCard * remaining);
                     setEta(etaSeconds);
                 } else {
@@ -111,7 +140,7 @@ export const usePDFGenerator = () => {
                             if (prev.find(p => p.url === failInfo.url)) return prev;
                             return [...prev, failInfo];
                         });
-                    })
+                    }, 5) // Limit to 5 total attempts per image
                         .then(img => {
                             if (img && img.width && img.height) {
                                 console.log(`Immagine ${index} caricata:`, img.width, 'x', img.height);
@@ -135,7 +164,7 @@ export const usePDFGenerator = () => {
             // Aspetta il completamento di tutti i caricamenti in parallelo
             const loadResults = await Promise.all(imagePromises);
             const allImages = new Array(totalCards).fill(null);
-            let loadedCount = 0;
+            loadedCount = 0; // Reset counter for actual loaded images
 
             // Popola l'array con le immagini caricate
             loadResults.forEach(result => {
@@ -145,80 +174,46 @@ export const usePDFGenerator = () => {
                 }
             });
 
-            // Se alcune immagini non si sono caricate, aspetta un po' di più
-            // (potrebbe aiutare i download lenti che sono quasi pronti)
+            // Se alcune immagini non si sono caricate, fai un retry limitato
+            // (solo se il tasso di fallimento è significativo e non siamo già in timeout)
             if (loadedCount < totalCards && !isCancelled) {
                 const failureRate = (totalCards - loadedCount) / totalCards;
 
-                // Logica di retry: se il tasso di fallimento è significativo (> 20%), riprova
-                if (failureRate > 0.2) {
-                    console.log(`Tasso di fallimento alto (${(failureRate * 100).toFixed(0)}%), attendo e ritento...`);
+                // Retry limitato: solo se fallimento > 30% e abbiamo ancora tempo
+                if (failureRate > 0.3 && (Date.now() - startTime) < (GLOBAL_TIMEOUT * 0.7)) {
+                    console.log(`Tasso di fallimento significativo (${(failureRate * 100).toFixed(0)}%), faccio retry limitato...`);
 
-                    // Raccogli indici delle immagini fallite
+                    // Raccogli indici delle immagini fallite (max 20 per evitare timeout)
                     const failedIndices = [];
-                    for (let i = 0; i < totalCards; i++) {
+                    for (let i = 0; i < totalCards && failedIndices.length < 20; i++) {
                         if (!allImages[i]) {
                             failedIndices.push(i);
                         }
                     }
 
-                    // Primo tentativo di retry: attendi 3 secondi e riprova
-                    console.log(`Primo retry: attendo 3s prima di ritentare ${failedIndices.length} immagini...`);
-                    await new Promise(r => setTimeout(r, 3000));
+                    // Retry veloce: attendi 2 secondi e riprova max 10 immagini
+                    console.log(`Retry veloce: ritento max 10 delle ${failedIndices.length} immagini fallite...`);
+                    await new Promise(r => setTimeout(r, 2000));
 
                     let retryCount = 0;
-                    for (const idx of failedIndices) {
-                        if (!isCancelled && idx < cards.length) {
-                            try {
-                                const retryImg = await loadImage(cards[idx].src);
-                                if (retryImg) {
-                                    allImages[idx] = retryImg;
-                                    loadedCount++;
-                                    retryCount++;
-                                    console.log(`[Retry 1] ✓ Immagine ${idx} caricata`);
-                                }
-                            } catch (e) {
-                                console.log(`[Retry 1] ✗ Immagine ${idx}: ${e.message}`);
+                    const maxRetries = Math.min(10, failedIndices.length);
+
+                    for (let i = 0; i < maxRetries && !isCancelled; i++) {
+                        const idx = failedIndices[i];
+                        try {
+                            const retryImg = await loadImage(cards[idx].src, null, 3); // Solo 3 tentativi per retry
+                            if (retryImg) {
+                                allImages[idx] = retryImg;
+                                loadedCount++;
+                                retryCount++;
+                                console.log(`[Retry] ✓ Immagine ${idx} caricata`);
                             }
+                        } catch (e) {
+                            console.log(`[Retry] ✗ Immagine ${idx}: ${e.message}`);
                         }
                     }
 
-                    console.log(`Primo retry completato: ${retryCount}/${failedIndices.length} images salvate`);
-
-                    // Se il tasso di fallimento è ancora molto alto (>50%), fai un secondo retry ancora più aggressivo
-                    if (loadedCount < totalCards * 0.5 && failureRate > 0.5) {
-                        console.log(`Tasso di fallimento ancora molto alto (${(((totalCards - loadedCount) / totalCards) * 100).toFixed(0)}%), faccio un secondo retry...`);
-
-                        // Raccogli di nuovo le immagini fallite
-                        const stillFailed = [];
-                        for (let i = 0; i < totalCards; i++) {
-                            if (!allImages[i]) {
-                                stillFailed.push(i);
-                            }
-                        }
-
-                        // Secondo retry: attendi 2s e riproviamo le prime 10 immagini fallite
-                        await new Promise(r => setTimeout(r, 2000));
-
-                        let secondRetryCount = 0;
-                        for (const idx of stillFailed.slice(0, 10)) {
-                            if (!isCancelled && idx < cards.length) {
-                                try {
-                                    const retryImg = await loadImage(cards[idx].src);
-                                    if (retryImg) {
-                                        allImages[idx] = retryImg;
-                                        loadedCount++;
-                                        secondRetryCount++;
-                                        console.log(`[Retry 2] ✓ Immagine ${idx} caricata`);
-                                    }
-                                } catch (e) {
-                                    console.log(`[Retry 2] ✗ Immagine ${idx}: ${e.message}`);
-                                }
-                            }
-                        }
-
-                        console.log(`Secondo retry completato: ${secondRetryCount}/${stillFailed.length} immagini salvate (altre tentate)`);
-                    }
+                    console.log(`Retry completato: ${retryCount}/${maxRetries} immagini salvate`);
                 }
             }
 
@@ -278,27 +273,49 @@ export const usePDFGenerator = () => {
                                 throw drawErr;
                             }
                         } else {
-                            // Se l'immagine non è stata caricata, disegna un rettangolo grigio
-                            console.warn(`Carta ${cardIndex} non caricata`);
-                            ctx.fillStyle = '#cccccc';
+                            // Se l'immagine non è stata caricata, disegna un placeholder più informativo
+                            console.warn(`Carta ${cardIndex} non caricata: ${card.name || 'Unknown'}`);
+                            ctx.fillStyle = '#f8f9fa';
                             ctx.fillRect(x, y, w, h);
-                            ctx.strokeStyle = '#000000';
+                            ctx.strokeStyle = '#6c757d';
                             ctx.lineWidth = 2;
                             ctx.strokeRect(x, y, w, h);
-                            ctx.fillStyle = '#333';
-                            ctx.font = 'bold 16px Arial';
-                            ctx.fillText('Non caricata', x + 10, y + h / 2);
+
+                            // Aggiungi testo informativo
+                            ctx.fillStyle = '#495057';
+                            ctx.font = 'bold 14px Arial';
+                            ctx.textAlign = 'center';
+                            const centerX = x + w / 2;
+                            const centerY = y + h / 2;
+
+                            // Nome della carta (troncato se necessario)
+                            const cardName = card.name || 'Carta';
+                            const truncatedName = cardName.length > 15 ? cardName.substring(0, 12) + '...' : cardName;
+                            ctx.fillText(truncatedName, centerX, centerY - 10);
+
+                            // Indicatore di errore
+                            ctx.font = '12px Arial';
+                            ctx.fillStyle = '#dc3545';
+                            ctx.fillText('Immagine non disponibile', centerX, centerY + 10);
+
+                            ctx.textAlign = 'left'; // Reset text alignment
                         }
                     } catch (error) {
                         console.error(`Errore processamento carta ${cardIndex}:`, error);
-                        ctx.fillStyle = '#cccccc';
+                        // Fallback per errori di processamento
+                        ctx.fillStyle = '#fff3cd';
                         ctx.fillRect(x, y, w, h);
-                        ctx.strokeStyle = '#000000';
+                        ctx.strokeStyle = '#856404';
                         ctx.lineWidth = 2;
                         ctx.strokeRect(x, y, w, h);
-                        ctx.fillStyle = '#333';
-                        ctx.font = 'bold 16px Arial';
-                        ctx.fillText('Errore', x + 10, y + h / 2);
+
+                        ctx.fillStyle = '#856404';
+                        ctx.font = 'bold 12px Arial';
+                        ctx.textAlign = 'center';
+                        const centerX = x + w / 2;
+                        const centerY = y + h / 2;
+                        ctx.fillText('Errore di elaborazione', centerX, centerY);
+                        ctx.textAlign = 'left';
                     } finally {
                         processedCount++;
                         updateProgress();
@@ -322,6 +339,7 @@ export const usePDFGenerator = () => {
             }
 
             if (isCancelled) {
+                if (globalTimeoutId) clearTimeout(globalTimeoutId);
                 setIsRendering(false);
                 setProgress(0);
                 setEta(null);
@@ -332,9 +350,20 @@ export const usePDFGenerator = () => {
             const pdfBlob = pdf.output('blob');
             const pdfUrl = URL.createObjectURL(new Blob([pdfBlob], { type: 'application/pdf' }));
 
+            // Clear global timeout on successful completion
+            if (globalTimeoutId) clearTimeout(globalTimeoutId);
+
             setProgress(100);
             setEta(0);
             await new Promise(r => setTimeout(r, 250));
+
+            // Mostra messaggio di successo con info sui fallimenti se presenti
+            const failedCount = failedImages.length;
+            if (failedCount > 0) {
+                toast.success(`PDF generato con successo! ${loadedCount}/${totalCards} immagini caricate. ${failedCount} immagini sostituite con placeholder.`);
+            } else {
+                toast.success('PDF generato con successo!');
+            }
 
             const opened = window.open(pdfUrl, '_blank');
             if (!opened) {
@@ -343,8 +372,25 @@ export const usePDFGenerator = () => {
 
             setTimeout(() => setIsRendering(false), 400);
         } catch (error) {
+            // Clear global timeout on error
+            if (globalTimeoutId) clearTimeout(globalTimeoutId);
             console.error('Errore nella generazione del PDF:', error);
-            alert('Errore nella generazione del PDF. Assicurati che le immagini siano accessibili.');
+
+            // Provide more specific error messages based on the error type
+            let errorMessage = 'Errore nella generazione del PDF.';
+            if (error.message?.includes('Maximum retries')) {
+                errorMessage = 'Impossibile caricare le immagini dopo diversi tentativi. Potrebbe essere un problema di connessione o le immagini potrebbero non essere accessibili.';
+            } else if (error.message?.includes('Timeout')) {
+                errorMessage = 'Timeout nel caricamento delle immagini. La connessione potrebbe essere lenta o instabile.';
+            } else if (error.message?.includes('CORS') || error.message?.includes('network')) {
+                errorMessage = 'Problema di accesso alle immagini. Alcuni browser bloccano il caricamento di immagini da fonti esterne.';
+            }
+
+            toast.error(`❌ ${errorMessage} Riprova più tardi o contatta il supporto se il problema persiste.`, {
+                autoClose: 10000,
+                position: "top-center"
+            });
+
             setIsRendering(false);
             setProgress(0);
             setEta(null);

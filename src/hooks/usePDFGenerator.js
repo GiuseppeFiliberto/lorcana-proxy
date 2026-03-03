@@ -360,6 +360,16 @@ export const usePDFGenerator = () => {
             // Mostra messaggio di successo con info sui fallimenti se presenti
             const failedCount = failedImages.length;
             if (failedCount > 0) {
+                // determine if any failure is due to protected resources or CORS
+                const protectedFails = failedImages.filter(f => /protected|401|CORS/i.test(f.reason));
+                if (protectedFails.length > 0) {
+                    const urls = protectedFails.map(f => f.url).join(', ');
+                    toast.error(`Alcune immagini (${protectedFails.length}) non sono accessibili (protezioni CORS/401). Saranno sostituite con placeholder. URL: ${urls}`, {
+                        autoClose: 15000,
+                        position: 'top-center'
+                    });
+                }
+
                 toast.success(`PDF generato con successo! ${loadedCount}/${totalCards} immagini caricate. ${failedCount} immagini sostituite con placeholder.`);
             } else {
                 toast.success('PDF generato con successo!');

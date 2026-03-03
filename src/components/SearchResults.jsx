@@ -53,7 +53,7 @@ export default function SearchResults({
                         e.target.style.color = 'var(--text-secondary)';
                     }}
                 >
-                    ✕ Chiudi
+                    Chiudi
                 </button>
             </div>
 
@@ -147,7 +147,6 @@ export default function SearchResults({
                 </>
             ) : (
                 <div className="text-center py-5">
-                    <div style={{ fontSize: '56px', marginBottom: '1rem', opacity: 0.8 }}></div>
                     <h6 style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '1.05rem', fontWeight: 600 }}>
                         Nessuna carta trovata
                     </h6>

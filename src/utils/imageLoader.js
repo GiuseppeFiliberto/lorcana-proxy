@@ -146,16 +146,16 @@ export const loadImage = async (src, onFail, maxRetries = 5) => {
                 // Verifica che l'immagine sia utilizzabile su canvas
                 if (isCanvasSafe(img)) {
                     imageCache.set(src, img);
-                    console.log(`[Direct] ✓ Immagine caricata direttamente (${img.width}x${img.height})`);
+                    console.log(`[Direct] Immagine caricata direttamente (${img.width}x${img.height})`);
                     return img;
                 } else {
-                    console.log(`[Direct] ✗ Immagine caricata ma non canvas-safe (CORS), provo proxy`);
+                    console.log(`[Direct] Immagine caricata ma non canvas-safe (CORS), provo proxy`);
                     lastError = new Error('CORS issue - image tainted canvas');
                     break; // Esci dal loop delle varianti e vai ai proxy
                 }
             } catch (err) {
                 lastError = err;
-                console.log(`[Direct] ✗ Fallito: ${err.message}`);
+                console.log(`[Direct] Fallito: ${err.message}`);
             }
         }
 
@@ -186,11 +186,11 @@ export const loadImage = async (src, onFail, maxRetries = 5) => {
 
                 // Proxy deve fornire CORS headers, procedi con cache
                 imageCache.set(src, img);
-                console.log(`[Proxy] ✓ Immagine caricata da proxy (${img.width}x${img.height})`);
+                console.log(`[Proxy] Immagine caricata da proxy (${img.width}x${img.height})`);
                 return img;
             } catch (err) {
                 lastError = err;
-                console.log(`[Proxy] ✗ Fallito: ${err.message}`);
+                console.log(`[Proxy] Fallito: ${err.message}`);
             }
         }
 

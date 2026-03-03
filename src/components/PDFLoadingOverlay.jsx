@@ -3,11 +3,11 @@ export default function PDFLoadingOverlay({ isRendering, progress, eta, formatEt
 
     const getLoadingMessage = () => {
         if (progress < 30) {
-            return '📥 Caricamento immagini in corso...';
+            return 'Caricamento immagini in corso...';
         } else if (progress < 99) {
-            return '🎨 Generazione PDF in corso...';
+            return 'Generazione PDF in corso...';
         } else {
-            return '✨ Quasi pronto!';
+            return 'Quasi pronto';
         }
     };
 
@@ -46,7 +46,7 @@ export default function PDFLoadingOverlay({ isRendering, progress, eta, formatEt
                         <div className="pdf-loading-stat">
                             <span className="pdf-loading-stat-label">Tempo rimanente:</span>
                             <span className="pdf-loading-stat-value">
-                                {eta === null ? '⏳ Calcolo...' : formatEta(eta)}
+                                {eta === null ? 'Calcolo...' : formatEta(eta)}
                             </span>
                         </div>
                     </div>

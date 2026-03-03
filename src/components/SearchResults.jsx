@@ -7,10 +7,6 @@ export default function SearchResults({
 }) {
     return (
         <div className="search-results-section mt-5" style={{
-            backgroundImage: 'linear-gradient(135deg, rgba(34, 24, 64, 0.5) 0%, rgba(26, 19, 51, 0.6) 100%), url(/assets/lorcana-parchment.jpg)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
             border: '1px solid rgba(230, 192, 104, 0.3)',
             borderRadius: '14px',
             padding: '1.5rem',

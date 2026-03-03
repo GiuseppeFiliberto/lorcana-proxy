@@ -7,9 +7,9 @@ const imageCache = new Map();
 let activeRequests = 0;
 const MAX_CONCURRENT_REQUESTS = 6; // Aumentato a 6 per migliore throughput
 
-// Timeout aumentato significativamente per connessioni lente e paesi con internet lento
-const TIMEOUT_DIRECT = 50000; // 50s - per caricamento diretto
-const TIMEOUT_PROXY = 60000;  // 60s - per servizi proxy
+// Timeout per caricamento diretto: ha priorità bassa, fallisce velocemente per usare proxy
+const TIMEOUT_DIRECT = 5000; // 5s - per caricamento diretto (fail-fast)
+const TIMEOUT_PROXY = 30000;  // 30s - per servizi proxy (con retry + backoff)
 
 // Rileva supporto WebP e AVIF
 const getImageFormat = () => {
@@ -185,6 +185,12 @@ export const loadImage = async (src, onFail, maxRetries = 3) => {
 const loadImageFromUrl = (url) => {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
+        // Set crossOrigin per evitare taint quando il server fornisce CORS headers
+        try {
+            img.crossOrigin = 'anonymous';
+        } catch (e) {
+            // ignore if browser forbids setting this
+        }
         let loaded = false;
 
         const timeout = setTimeout(() => {

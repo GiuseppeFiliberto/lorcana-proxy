@@ -71,6 +71,13 @@ export const loadImage = async (src, onFail, maxRetries = 3) => {
     if (src.startsWith('data:') || src.startsWith('blob:')) {
         return await new Promise((resolve, reject) => {
             const img = new window.Image();
+            // Richiedi risorse con CORS anonimo quando possibile, in modo che
+            // il canvas non venga tainted se il server fornisce gli header CORS.
+            try {
+                img.crossOrigin = 'anonymous';
+            } catch (e) {
+                // ignore if browser forbids setting this
+            }
             img.onload = () => {
                 imageCache.set(src, img);
                 resolve(img);
@@ -185,6 +192,8 @@ const loadImageFromUrl = (url) => {
         img.onerror = (e) => {
             loaded = true;
             clearTimeout(timeout);
+            // Suggest potential CORS issue in logs for easier debugging
+            console.warn(`Impossibile caricare immagine ${url}: possibile problema CORS o risorsa non raggiungibile`);
             reject(new Error('Errore caricamento immagine: ' + (e?.message || 'sconosciuto')));
         };
 

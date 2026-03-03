@@ -39,6 +39,27 @@ const PROXY_SERVICES = [
     url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
 ];
 
+// Genera varianti URL fallback per diverse estensioni/formati
+const getURLVariants = (url) => {
+    const variants = [url]; // Original first
+
+    // Se l'URL contiene AVIF, prova anche JPEG (cards.lorcast.io potrebbe bloccare AVIF ma non JPEG)
+    if (url.includes('.avif')) {
+        variants.push(url.replace(/\.avif/gi, '.jpg'));
+        variants.push(url.replace(/\.avif/gi, '.jpeg'));
+    }
+
+    // Se è JPEG, prova anche con i parametri rimossi per alcune CDN
+    if (url.includes('.jpg') || url.includes('.jpeg')) {
+        const urlWithoutQuery = url.split('?')[0];
+        if (urlWithoutQuery !== url) {
+            variants.push(urlWithoutQuery);
+        }
+    }
+
+    return variants;
+};
+
 // Funzione helper per retry con backoff esponenziale
 const retryWithBackoff = async (fn, maxRetries = 4, initialDelay = 1000) => {
     let lastError = null;

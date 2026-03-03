@@ -91,9 +91,7 @@ body,
 body {
     margin: 0;
     font-family: var(--font-primary);
-    background:
-        radial-gradient(ellipse at top, rgba(47, 36, 86, 0.7) 0%, rgba(26, 19, 51, 0.85) 50%, rgba(13, 8, 32, 0.95) 100%),
-        url(/assets/lorcana-nebula.jpg) center center / cover no-repeat fixed;
+    background: url(/assets/lorcana-nebula.jpg) center center / cover no-repeat fixed;
     color: var(--text);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

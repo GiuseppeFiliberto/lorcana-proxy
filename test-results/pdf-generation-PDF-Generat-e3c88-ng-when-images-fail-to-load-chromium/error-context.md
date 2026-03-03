@@ -1,0 +1,92 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e5]:
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - img "Gli Incantababbaluci Logo" [ref=e9]
+        - heading "Proxy Printer" [level=1] [ref=e10]
+      - paragraph [ref=e11]: Crea e stampa le tue carte proxy personalizzate
+    - generic [ref=e12]:
+      - heading "Come funziona" [level=5] [ref=e13]
+      - generic [ref=e14]:
+        - paragraph [ref=e15]:
+          - strong [ref=e16]: "1."
+          - text: Cerca le carte usando il nome o i filtri avanzati (inchiostro, tipo, costo, set)
+        - paragraph [ref=e17]:
+          - strong [ref=e18]: "2."
+          - text: Clicca sulle carte nei risultati per aggiungerle alla lista
+        - paragraph [ref=e19]:
+          - strong [ref=e20]: "3."
+          - text: Quando hai finito, clicca "Stampa Carte" per generare il PDF
+        - paragraph [ref=e21]:
+          - emphasis [ref=e22]: Ogni pagina PDF contiene 9 carte in formato A4, pronte per la stampa!
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - heading "Cerca Carte" [level=5] [ref=e25]
+        - generic [ref=e27]:
+          - textbox "Inserisci il nome della carta" [active] [ref=e28]: Lightning Bolt
+          - button "Cerca" [ref=e29] [cursor=pointer]
+      - generic [ref=e30]:
+        - heading "Filtri Avanzati" [level=6] [ref=e32]
+        - generic [ref=e33]:
+          - generic [ref=e35]:
+            - generic [ref=e36]: Inchiostro
+            - generic [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: Tutti gli inchiostri
+              - img [ref=e40]
+          - generic [ref=e43]:
+            - generic [ref=e44]: Tipo di Carta
+            - generic [ref=e46] [cursor=pointer]:
+              - generic [ref=e47]: Tutti i tipi
+              - img [ref=e48]
+          - generic [ref=e51]:
+            - generic [ref=e52]: Costo
+            - generic [ref=e54] [cursor=pointer]:
+              - generic [ref=e55]: Tutti i costi
+              - img [ref=e56]
+          - generic [ref=e59]:
+            - generic [ref=e60]: Set
+            - generic [ref=e62] [cursor=pointer]:
+              - generic [ref=e63]: Tutti i set
+              - img [ref=e64]
+          - generic [ref=e67]:
+            - generic [ref=e68]: Rarità
+            - generic [ref=e70] [cursor=pointer]:
+              - generic [ref=e71]: Tutte le rarità
+              - img [ref=e72]
+          - button "Ripristina Filtri" [ref=e75] [cursor=pointer]
+      - generic [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - heading "Risultati della Ricerca" [level=5] [ref=e79]
+            - paragraph [ref=e80]: Mostrando 24 di 1 carte trovate
+          - button "✕ Chiudi" [ref=e81] [cursor=pointer]
+        - img "Zeus" [ref=e85] [cursor=pointer]
+    - generic [ref=e86]:
+      - separator [ref=e87]
+      - generic [ref=e88]: oppure
+    - generic [ref=e90]:
+      - heading "Aggiungi da URL" [level=5] [ref=e91]
+      - generic [ref=e93]:
+        - textbox "Inserisci l'URL dell'immagine" [ref=e94]
+        - button "Aggiungi" [disabled]
+    - generic [ref=e95]:
+      - generic [ref=e97]: Nessuna pagina
+      - 'heading "Carte aggiunte: 0" [level=4] [ref=e99]':
+        - text: "Carte aggiunte:"
+        - generic [ref=e100]: "0"
+    - generic [ref=e101]:
+      - button "Stampa tutte le carte aggiunte" [disabled]: Stampa Carte
+      - button "Cancella tutte le carte aggiunte" [disabled]: Cancella Tutto
+    - generic [ref=e103]:
+      - paragraph [ref=e104]:
+        - text: ✨ Fatto da
+        - strong [ref=e105]: Phil
+        - text: de
+        - strong [ref=e106]: Gli Incantababbaluci
+        - text: ✨
+      - paragraph [ref=e107]: Lorcana Proxy Printer • Versione 1.0
+  - region "Notifications Alt+T"
+```

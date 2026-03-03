@@ -117,9 +117,16 @@ export const loadImage = async (src, onFail, maxRetries = 3) => {
 
             const img = await retryWithBackoff(attemptLoadDirect, Math.min(1, maxRetries - 1), 300);
 
-            imageCache.set(src, img);
-            console.log(`✓ Immagine caricata direttamente: ${src}`);
-            return img;
+            // Verifica che l'immagine sia utilizzabile in canvas senza taint (CORS)
+            if (isCanvasSafe(img)) {
+                imageCache.set(src, img);
+                console.log(`✓ Immagine caricata direttamente e CORS-safe: ${src}`);
+                return img;
+            } else {
+                // Forza retry con proxy se l'immagine taints il canvas
+                lastError = new Error('Image taints canvas (no CORS headers)');
+                console.log(`⚠️ Immagine diretta taints il canvas, proverò i proxy: ${src}`);
+            }
         } catch (err) {
             lastError = err;
             console.log(`✗ Caricamento diretto fallito: ${err.message}`);
@@ -150,9 +157,14 @@ export const loadImage = async (src, onFail, maxRetries = 3) => {
 
                 const img = await retryWithBackoff(attemptLoadProxy, Math.min(2, maxRetries - totalAttempts), 400);
 
-                imageCache.set(src, img);
-                console.log(`✓ Immagine caricata da proxy`);
-                return img;
+                if (isCanvasSafe(img)) {
+                    imageCache.set(src, img);
+                    console.log(`✓ Immagine caricata da proxy e CORS-safe`);
+                    return img;
+                } else {
+                    lastError = new Error('Proxy image still taints canvas');
+                    console.log(`✗ Immagine proxy taints il canvas: ${proxyUrl}`);
+                }
             } catch (err) {
                 lastError = err;
                 console.log(`✗ Proxy fallito: ${err.message}`);
@@ -199,4 +211,22 @@ const loadImageFromUrl = (url) => {
 
         img.src = url;
     });
+};
+
+// Controlla se un'immagine può essere usata su canvas senza causare taint (CORS)
+const isCanvasSafe = (img) => {
+    try {
+        const c = document.createElement('canvas');
+        c.width = Math.min(16, img.naturalWidth || img.width || 16);
+        c.height = Math.min(16, img.naturalHeight || img.height || 16);
+        const cx = c.getContext('2d');
+        cx.clearRect(0, 0, c.width, c.height);
+        cx.drawImage(img, 0, 0, c.width, c.height);
+        // Proviamo a leggere i dati o a chiamare toDataURL; se l'immagine taints il
+        // canvas, verrà lanciata una SecurityError.
+        c.toDataURL();
+        return true;
+    } catch (e) {
+        return false;
+    }
 };

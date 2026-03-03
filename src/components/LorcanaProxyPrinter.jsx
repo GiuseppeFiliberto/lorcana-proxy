@@ -12,6 +12,7 @@ import SectionDivider from './SectionDivider';
 import FilterSection from './FilterSection';
 import SearchResults from './SearchResults';
 import CardGrid from './CardGrid';
+import PDFLoadingOverlay from './PDFLoadingOverlay';
 import Footer from './Footer';
 
 // Hooks
@@ -155,41 +156,25 @@ export default function LorcanaProxyPrinter() {
                         >
                             Cancella Tutto
                         </button>
-                        {pdfHook.isRendering && (
-                            <button
-                                className="btn btn-sm btn-outline-light ms-2"
-                                onClick={pdfHook.cancelRender}
-                                aria-label="Annulla generazione PDF"
-                            >
-                                Annulla
-                            </button>
-                        )}
                     </div>
 
-                    {/* Progress Bar */}
-                    {pdfHook.isRendering && (
-                        <div className="container mb-4" style={{ position: 'relative', zIndex: 2 }}>
-                            <div className="d-flex justify-content-center align-items-center gap-3">
-                                <div style={{ width: '60%' }}>
-                                    <div
-                                        className={`progress ${pdfHook.isRendering ? 'running' : ''}`}
-                                        role="progressbar"
-                                        aria-label="Generazione PDF"
-                                        aria-valuemin={0}
-                                        aria-valuemax={100}
-                                        aria-valuenow={pdfHook.progress}
-                                    >
-                                        <div className="progress-bar bg-success" style={{ width: `${pdfHook.progress}%` }}>
-                                            {pdfHook.progress}%
-                                        </div>
-                                    </div>
-                                    <div className="mt-2 text-center text-muted" style={{ color: '#ffffff !important' }}>
-                                        {pdfHook.eta === null ? 'Calcolo tempo stimato...' : `Tempo stimato: ${pdfHook.formatEta(pdfHook.eta)}`}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {/* PDF Loading Overlay */}
+                    <PDFLoadingOverlay
+                        isRendering={pdfHook.isRendering}
+                        progress={pdfHook.progress}
+                        eta={pdfHook.eta}
+                        formatEta={pdfHook.formatEta}
+                        onCancel={pdfHook.cancelRender}
+                    />
+
+                    {/* PDF Loading Overlay */}
+                    <PDFLoadingOverlay
+                        isRendering={pdfHook.isRendering}
+                        progress={pdfHook.progress}
+                        eta={pdfHook.eta}
+                        formatEta={pdfHook.formatEta}
+                        onCancel={pdfHook.cancelRender}
+                    />
 
                     {/* PDF Ready Alert */}
                     {pdfHook.pdfReadyUrl && (

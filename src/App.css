@@ -1190,3 +1190,227 @@ er Styling */
 .url-section {
     position: relative;
 }
+
+/* ======================== PDF Loading Overlay ======================== */
+
+.pdf-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.pdf-loading-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 1;
+}
+
+.pdf-loading-modal {
+    position: relative;
+    z-index: 2;
+    width: 90%;
+    max-width: 500px;
+    animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pdf-loading-content {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--surface-light) 100%);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    border-radius: var(--radius-xl);
+    padding: 2.5rem 2rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.pdf-loading-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.pdf-loading-header h2 {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent-light);
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 8px rgba(96, 165, 250, 0.3);
+}
+
+.pdf-loading-message {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin: 0;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.pdf-loading-progress-container {
+    margin-bottom: 2rem;
+}
+
+.pdf-loading-progress-bar {
+    width: 100%;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.pdf-loading-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent-light) 100%);
+    border-radius: 10px;
+    transition: width 0.4s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    position: relative;
+    box-shadow: 0 0 15px rgba(96, 165, 250, 0.6);
+}
+
+.pdf-loading-progress-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #1a1d3a;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.pdf-loading-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--radius);
+    border: 1px solid rgba(96, 165, 250, 0.1);
+}
+
+.pdf-loading-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.pdf-loading-stat-label {
+    font-size: 0.85rem;
+    color: var(--gray-blue-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.pdf-loading-stat-value {
+    font-size: 1.4rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--accent-light);
+    text-shadow: 0 2px 8px rgba(96, 165, 250, 0.3);
+}
+
+.pdf-loading-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.pdf-loading-actions .btn {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.95rem;
+    border-radius: var(--radius);
+    transition: all 0.3s ease;
+}
+
+.pdf-loading-actions .btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.pdf-loading-decoration {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.pdf-loading-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: bounce 1.4s infinite;
+}
+
+.pdf-loading-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.pdf-loading-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes bounce {
+
+    0%,
+    80%,
+    100% {
+        opacity: 0.3;
+        transform: scale(0.8);
+    }
+
+    40% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+}

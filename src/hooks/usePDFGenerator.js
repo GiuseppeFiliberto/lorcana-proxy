@@ -150,11 +150,11 @@ export const usePDFGenerator = () => {
             if (loadedCount < totalCards && !isCancelled) {
                 const failureRate = (totalCards - loadedCount) / totalCards;
 
-                // Se il tasso di fallimento è basso (< 40%), aspetta e retry
-                if (failureRate < 0.4 && failureRate > 0) {
-                    console.log(`Tasso di fallimento basso (${(failureRate * 100).toFixed(0)}%), attendo ulteriormente...`);
+                // Logica di retry: se il tasso di fallimento è significativo (> 20%), riprova
+                if (failureRate > 0.2) {
+                    console.log(`Tasso di fallimento alto (${(failureRate * 100).toFixed(0)}%), attendo e ritento...`);
 
-                    // Retry aggiuntivo per immagini fallite (con timeout più generoso)
+                    // Raccogli indici delle immagini fallite
                     const failedIndices = [];
                     for (let i = 0; i < totalCards; i++) {
                         if (!allImages[i]) {
@@ -162,23 +162,62 @@ export const usePDFGenerator = () => {
                         }
                     }
 
-                    // Attendi un po' prima di riprovare
-                    await new Promise(r => setTimeout(r, 2000));
+                    // Primo tentativo di retry: attendi 3 secondi e riprova
+                    console.log(`Primo retry: attendo 3s prima di ritentare ${failedIndices.length} immagini...`);
+                    await new Promise(r => setTimeout(r, 3000));
 
-                    // Retry veloce con limite
-                    for (const idx of failedIndices.slice(0, 5)) {
+                    let retryCount = 0;
+                    for (const idx of failedIndices) {
                         if (!isCancelled && idx < cards.length) {
                             try {
                                 const retryImg = await loadImage(cards[idx].src);
                                 if (retryImg) {
                                     allImages[idx] = retryImg;
                                     loadedCount++;
-                                    console.log(`Retry riuscito per immagine ${idx}`);
+                                    retryCount++;
+                                    console.log(`[Retry 1] ✓ Immagine ${idx} caricata`);
                                 }
                             } catch (e) {
-                                console.log(`Retry fallito per immagine ${idx}:`, e.message);
+                                console.log(`[Retry 1] ✗ Immagine ${idx}: ${e.message}`);
                             }
                         }
+                    }
+
+                    console.log(`Primo retry completato: ${retryCount}/${failedIndices.length} images salvate`);
+
+                    // Se il tasso di fallimento è ancora molto alto (>50%), fai un secondo retry ancora più aggressivo
+                    if (loadedCount < totalCards * 0.5 && failureRate > 0.5) {
+                        console.log(`Tasso di fallimento ancora molto alto (${(((totalCards - loadedCount) / totalCards) * 100).toFixed(0)}%), faccio un secondo retry...`);
+
+                        // Raccogli di nuovo le immagini fallite
+                        const stillFailed = [];
+                        for (let i = 0; i < totalCards; i++) {
+                            if (!allImages[i]) {
+                                stillFailed.push(i);
+                            }
+                        }
+
+                        // Secondo retry: attendi 2s e riproviamo le prime 10 immagini fallite
+                        await new Promise(r => setTimeout(r, 2000));
+
+                        let secondRetryCount = 0;
+                        for (const idx of stillFailed.slice(0, 10)) {
+                            if (!isCancelled && idx < cards.length) {
+                                try {
+                                    const retryImg = await loadImage(cards[idx].src);
+                                    if (retryImg) {
+                                        allImages[idx] = retryImg;
+                                        loadedCount++;
+                                        secondRetryCount++;
+                                        console.log(`[Retry 2] ✓ Immagine ${idx} caricata`);
+                                    }
+                                } catch (e) {
+                                    console.log(`[Retry 2] ✗ Immagine ${idx}: ${e.message}`);
+                                }
+                            }
+                        }
+
+                        console.log(`Secondo retry completato: ${secondRetryCount}/${stillFailed.length} immagini salvate (altre tentate)`);
                     }
                 }
             }

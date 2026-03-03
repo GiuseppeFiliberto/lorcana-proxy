@@ -7,9 +7,9 @@ const imageCache = new Map();
 let activeRequests = 0;
 const MAX_CONCURRENT_REQUESTS = 6; // Aumentato a 6 per migliore throughput
 
-// Timeout aumentato per connessioni lente
-const TIMEOUT_DIRECT = 25000; // 25s (era 12s) - per caricamento diretto
-const TIMEOUT_PROXY = 30000;  // 30s (era 15s) - per servizi proxy
+// Timeout aumentato significativamente per connessioni lente e paesi con internet lento
+const TIMEOUT_DIRECT = 50000; // 50s - per caricamento diretto
+const TIMEOUT_PROXY = 60000;  // 60s - per servizi proxy
 
 // Rileva supporto WebP e AVIF
 const getImageFormat = () => {
@@ -20,24 +20,31 @@ const getImageFormat = () => {
 
 const SUPPORTED_FORMAT = getImageFormat();
 
-// Proxy service più affidabile - ottimizzato per velocità con format moderni
+// Proxy services multiple - serve come fallback per diverse regioni e CDN
 const PROXY_SERVICES = [
-    // weserv.nl - aspect ratio carta Lorcana (2.5:3.5) mantenuto
+    // weserv.nl - molto affidabile, buona copertura globale
     url => {
         const format = SUPPORTED_FORMAT === 'webp' ? '&format=webp' : '';
         return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=600&h=840&fit=cover&q=85${format}`;
     },
-    // Cloudinary - aspect ratio corretto
+    // Cloudinary - backup affidabile con buona velocità
     url => {
         const format = SUPPORTED_FORMAT === 'webp' ? 'f_auto' : 'f_jpg';
         return `https://res.cloudinary.com/demo/image/fetch/${format},w_600,h_840,c_fill,q_auto/${encodeURIComponent(url)}`;
     },
-    // Fallback weserv - larghezza massima con aspect ratio
-    url => `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=600&h=840&q=85`,
+    // AllThumbsUp - servizio proxy alternativo
+    url => `https://get-image-now.herokuapp.com/?url=${encodeURIComponent(url)}`,
+    // Image proxy semplice - fallback conservativo
+    url => `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=800&q=80`,
+    // Caricamento diretto con query string per evitare cache
+    url => {
+        const hasQuery = url.includes('?');
+        return `${url}${hasQuery ? '&' : '?'}t=${Date.now()}`;
+    },
 ];
 
 // Funzione helper per retry con backoff esponenziale
-const retryWithBackoff = async (fn, maxRetries = 3, initialDelay = 800) => {
+const retryWithBackoff = async (fn, maxRetries = 4, initialDelay = 1000) => {
     let lastError = null;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
@@ -152,7 +159,7 @@ export const loadImage = async (src, onFail) => {
                     const img = await loadImageFromUrl(objectUrl);
                     URL.revokeObjectURL(objectUrl);
                     return img;
-                }, 3, 400); // 3 retries per proxy service (aumentato da 2)
+                }, 4, 400); // 4 retries per proxy service per affidabilità massima
 
                 imageCache.set(src, img);
                 console.log(`✓ Immagine caricata da proxy`);
@@ -183,9 +190,9 @@ const loadImageFromUrl = (url) => {
             if (!loaded) {
                 img.onload = null;
                 img.onerror = null;
-                reject(new Error('Timeout caricamento immagine (60s)'));
+                reject(new Error('Timeout caricamento immagine (90s)'));
             }
-        }, 60000); // 60s per rendering immagini (aumentato da 20s)
+        }, 90000); // 90s - timeout molto generoso per immagini (era 60s)
 
         img.onload = () => {
             loaded = true;

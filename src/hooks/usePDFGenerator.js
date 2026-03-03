@@ -113,11 +113,16 @@ export const usePDFGenerator = () => {
                         });
                     })
                         .then(img => {
-                            console.log(`Immagine ${index} caricata:`, img.width, 'x', img.height);
-                            return { index, img };
+                            if (img && img.width && img.height) {
+                                console.log(`Immagine ${index} caricata:`, img.width, 'x', img.height);
+                                return { index, img };
+                            } else {
+                                console.warn(`Immagine ${index} caricata ma non valida`, img);
+                                return { index, img: null };
+                            }
                         })
                         .catch(err => {
-                            console.error(`Errore caricamento immagine ${index}:`, err);
+                            console.error(`Errore caricamento immagine ${index}:`, err.message);
                             return { index, img: null };
                         });
                 } finally {
@@ -139,6 +144,44 @@ export const usePDFGenerator = () => {
                     loadedCount++;
                 }
             });
+
+            // Se alcune immagini non si sono caricate, aspetta un po' di più
+            // (potrebbe aiutare i download lenti che sono quasi pronti)
+            if (loadedCount < totalCards && !isCancelled) {
+                const failureRate = (totalCards - loadedCount) / totalCards;
+
+                // Se il tasso di fallimento è basso (< 40%), aspetta e retry
+                if (failureRate < 0.4 && failureRate > 0) {
+                    console.log(`Tasso di fallimento basso (${(failureRate * 100).toFixed(0)}%), attendo ulteriormente...`);
+
+                    // Retry aggiuntivo per immagini fallite (con timeout più generoso)
+                    const failedIndices = [];
+                    for (let i = 0; i < totalCards; i++) {
+                        if (!allImages[i]) {
+                            failedIndices.push(i);
+                        }
+                    }
+
+                    // Attendi un po' prima di riprovare
+                    await new Promise(r => setTimeout(r, 2000));
+
+                    // Retry veloce con limite
+                    for (const idx of failedIndices.slice(0, 5)) {
+                        if (!isCancelled && idx < cards.length) {
+                            try {
+                                const retryImg = await loadImage(cards[idx].src);
+                                if (retryImg) {
+                                    allImages[idx] = retryImg;
+                                    loadedCount++;
+                                    console.log(`Retry riuscito per immagine ${idx}`);
+                                }
+                            } catch (e) {
+                                console.log(`Retry fallito per immagine ${idx}:`, e.message);
+                            }
+                        }
+                    }
+                }
+            }
 
             console.log(`Immagini caricate: ${loadedCount}/${totalCards}`);
             setProgress(Math.round((loadedCount / totalCards) * 30)); // Primo 30% per caricamento

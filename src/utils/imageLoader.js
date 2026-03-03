@@ -7,6 +7,10 @@ const imageCache = new Map();
 let activeRequests = 0;
 const MAX_CONCURRENT_REQUESTS = 6; // Aumentato a 6 per migliore throughput
 
+// Timeout aumentato per connessioni lente
+const TIMEOUT_DIRECT = 25000; // 25s (era 12s) - per caricamento diretto
+const TIMEOUT_PROXY = 30000;  // 30s (era 15s) - per servizi proxy
+
 // Rileva supporto WebP e AVIF
 const getImageFormat = () => {
     if (typeof navigator === 'undefined') return 'jpg';
@@ -33,7 +37,7 @@ const PROXY_SERVICES = [
 ];
 
 // Funzione helper per retry con backoff esponenziale
-const retryWithBackoff = async (fn, maxRetries = 2, initialDelay = 500) => {
+const retryWithBackoff = async (fn, maxRetries = 3, initialDelay = 800) => {
     let lastError = null;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
@@ -87,10 +91,10 @@ export const loadImage = async (src, onFail) => {
                     fetch(src, {
                         mode: 'no-cors',
                         credentials: 'omit',
-                        signal: AbortSignal.timeout(12000)
+                        signal: AbortSignal.timeout(TIMEOUT_DIRECT)
                     }),
                     new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Timeout diretto')), 12000)
+                        setTimeout(() => reject(new Error('Timeout diretto')), TIMEOUT_DIRECT)
                     )
                 ]);
 
@@ -123,10 +127,10 @@ export const loadImage = async (src, onFail) => {
                 const img = await retryWithBackoff(async () => {
                     const response = await Promise.race([
                         fetch(proxyUrl, {
-                            signal: AbortSignal.timeout(15000)
+                            signal: AbortSignal.timeout(TIMEOUT_PROXY)
                         }),
                         new Promise((_, reject) =>
-                            setTimeout(() => reject(new Error('Timeout proxy')), 15000)
+                            setTimeout(() => reject(new Error('Timeout proxy')), TIMEOUT_PROXY)
                         )
                     ]);
 
@@ -148,7 +152,7 @@ export const loadImage = async (src, onFail) => {
                     const img = await loadImageFromUrl(objectUrl);
                     URL.revokeObjectURL(objectUrl);
                     return img;
-                }, 2, 300); // 2 retries per proxy service
+                }, 3, 400); // 3 retries per proxy service (aumentato da 2)
 
                 imageCache.set(src, img);
                 console.log(`✓ Immagine caricata da proxy`);
@@ -179,9 +183,9 @@ const loadImageFromUrl = (url) => {
             if (!loaded) {
                 img.onload = null;
                 img.onerror = null;
-                reject(new Error('Timeout caricamento immagine (20s)'));
+                reject(new Error('Timeout caricamento immagine (60s)'));
             }
-        }, 20000); // 20s per immagini da proxy
+        }, 60000); // 60s per rendering immagini (aumentato da 20s)
 
         img.onload = () => {
             loaded = true;

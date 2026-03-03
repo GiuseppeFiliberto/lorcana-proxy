@@ -61,7 +61,7 @@ const retryWithBackoff = async (fn, maxRetries = 4, initialDelay = 1000) => {
     throw lastError;
 };
 
-export const loadImage = async (src, onFail) => {
+export const loadImage = async (src, onFail, maxRetries = 3) => {
     // Controlla cache
     if (imageCache.has(src)) {
         return imageCache.get(src);
@@ -89,33 +89,26 @@ export const loadImage = async (src, onFail) => {
 
     try {
         let lastError = null;
+        let totalAttempts = 0;
 
-        // 1. Prova il caricamento diretto con retry
+        // 1. Prova il caricamento diretto usando l'elemento <img>
         try {
             console.log(`Tentando caricamento diretto di: ${src}`);
-            const img = await retryWithBackoff(async () => {
-                const response = await Promise.race([
-                    fetch(src, {
-                        mode: 'no-cors',
-                        credentials: 'omit',
-                        signal: AbortSignal.timeout(TIMEOUT_DIRECT)
-                    }),
-                    new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Timeout diretto')), TIMEOUT_DIRECT)
-                    )
-                ]);
 
-                if (response.ok || response.type === 'opaque') {
-                    const blob = await response.blob();
-                    if (blob.type.startsWith('image/') || blob.size > 1000) {
-                        const objectUrl = URL.createObjectURL(blob);
-                        const img = await loadImageFromUrl(objectUrl);
-                        URL.revokeObjectURL(objectUrl);
-                        return img;
-                    }
+            const attemptLoadDirect = async () => {
+                if (totalAttempts >= maxRetries) {
+                    throw new Error(`Maximum retries (${maxRetries}) exceeded`);
                 }
-                throw new Error('Risposta non è un\'immagine valida');
-            }, 1, 300); // 1 retry per caricamento diretto
+                totalAttempts++;
+
+                // loadImageFromUrl usa un timeout interno; qui aggiungiamo un timeout specifico per il tentativo diretto
+                return await Promise.race([
+                    loadImageFromUrl(src),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout diretto')), TIMEOUT_DIRECT))
+                ]);
+            };
+
+            const img = await retryWithBackoff(attemptLoadDirect, Math.min(1, maxRetries - 1), 300);
 
             imageCache.set(src, img);
             console.log(`✓ Immagine caricata direttamente: ${src}`);
@@ -125,41 +118,30 @@ export const loadImage = async (src, onFail) => {
             console.log(`✗ Caricamento diretto fallito: ${err.message}`);
         }
 
-        // 2. Prova con i servizi proxy con retry
+        // 2. Prova con i servizi proxy con retry limitato
         for (const proxyBuilder of PROXY_SERVICES) {
+            if (totalAttempts >= maxRetries) {
+                console.log(`Maximum retries (${maxRetries}) exceeded, skipping remaining proxies`);
+                break;
+            }
+
             try {
                 const proxyUrl = proxyBuilder(src);
                 console.log(`Tentando proxy: ${proxyUrl.substring(0, 50)}...`);
 
-                const img = await retryWithBackoff(async () => {
-                    const response = await Promise.race([
-                        fetch(proxyUrl, {
-                            signal: AbortSignal.timeout(TIMEOUT_PROXY)
-                        }),
-                        new Promise((_, reject) =>
-                            setTimeout(() => reject(new Error('Timeout proxy')), TIMEOUT_PROXY)
-                        )
+                const attemptLoadProxy = async () => {
+                    if (totalAttempts >= maxRetries) {
+                        throw new Error(`Maximum retries (${maxRetries}) exceeded`);
+                    }
+                    totalAttempts++;
+
+                    return await Promise.race([
+                        loadImageFromUrl(proxyUrl),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout proxy')), TIMEOUT_PROXY))
                     ]);
+                };
 
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-
-                    const blob = await response.blob();
-
-                    // Valida che sia un'immagine
-                    if (!blob.type.startsWith('image/')) {
-                        console.warn(`Proxy ritorna tipo: ${blob.type}, size: ${blob.size}`);
-                        if (blob.size < 1000) {
-                            throw new Error('Risposta proxy troppo piccola - non è un\'immagine');
-                        }
-                    }
-
-                    const objectUrl = URL.createObjectURL(blob);
-                    const img = await loadImageFromUrl(objectUrl);
-                    URL.revokeObjectURL(objectUrl);
-                    return img;
-                }, 4, 400); // 4 retries per proxy service per affidabilità massima
+                const img = await retryWithBackoff(attemptLoadProxy, Math.min(2, maxRetries - totalAttempts), 400);
 
                 imageCache.set(src, img);
                 console.log(`✓ Immagine caricata da proxy`);

@@ -13,17 +13,19 @@ export default function Header() {
                     alt="Gli Incantababbaluci Logo"
                     style={{
                         width: '180px',
-                        height: 'auto'
+                        height: 'auto',
+                        filter: 'drop-shadow(0 4px 16px rgba(230, 192, 104, 0.3))'
                     }}
                 />
                 <h1 style={{
                     marginBottom: '0.5rem'
                 }}>
-                    Proxy Printer
+                    Lorcana Proxy Printer
                 </h1>
             </div>
-            <p className="lead" style={{
-                fontSize: '1rem'
+            <p style={{
+                fontSize: '1.05rem',
+                fontStyle: 'italic'
             }}>
                 Crea e stampa le tue carte proxy personalizzate
             </p>

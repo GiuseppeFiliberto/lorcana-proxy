@@ -91,7 +91,9 @@ body,
 body {
     margin: 0;
     font-family: var(--font-primary);
-    background: radial-gradient(ellipse at top, #2f2456 0%, #1a1333 50%, #0d0820 100%);
+    background:
+        radial-gradient(ellipse at top, rgba(47, 36, 86, 0.7) 0%, rgba(26, 19, 51, 0.85) 50%, rgba(13, 8, 32, 0.95) 100%),
+        url('/assets/lorcana-nebula.jpg') center center / cover no-repeat fixed;
     color: var(--text);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -112,18 +114,21 @@ body::before {
     right: 0;
     bottom: 0;
     background:
-        radial-gradient(circle at 20% 50%, rgba(155, 126, 220, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(230, 192, 104, 0.08) 0%, transparent 50%);
+        radial-gradient(circle at 20% 50%, rgba(155, 126, 220, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(230, 192, 104, 0.06) 0%, transparent 50%);
     pointer-events: none;
     z-index: 0;
 }
 
-body::before {
+body::after {
     display: none;
 }
 
-body::after {
-    display: none;
+/* Main container */
+.app-container,
+.container {
+    position: relative;
+    z-index: 1;
 }
 
 @keyframes curvesFloat {

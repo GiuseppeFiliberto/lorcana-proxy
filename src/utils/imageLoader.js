@@ -128,8 +128,34 @@ export const loadImage = async (src, onFail, maxRetries = 5) => {
         let lastError = null;
         let totalAttempts = 0;
 
-        // Salta il caricamento diretto se il dominio è noto per bloccare CORS
-        // (cards.lorcast.io, scryfall.com, ecc.) - vai direttamente ai proxy
+        // 1. Prova prima il caricamento diretto (veloce e senza proxy)
+        const urlVariants = getURLVariants(src);
+        for (const variant of urlVariants) {
+            if (totalAttempts >= maxRetries) break;
+
+            try {
+                console.log(`Tentando caricamento diretto: ${variant.substring(0, 60)}...`);
+                totalAttempts++;
+
+                const img = await Promise.race([
+                    loadImageFromUrl(variant),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout diretto')), TIMEOUT_DIRECT))
+                ]);
+
+                // Verifica che l'immagine sia utilizzabile su canvas
+                if (isCanvasSafe(img)) {
+                    imageCache.set(src, img);
+                    console.log(`✓ Immagine caricata direttamente`);
+                    return img;
+                } else {
+                    console.log(`✗ Immagine caricata ma non canvas-safe (CORS), provo proxy`);
+                    break; // Esci dal loop delle varianti e vai ai proxy
+                }
+            } catch (err) {
+                lastError = err;
+                console.log(`✗ Caricamento diretto fallito: ${err.message}`);
+            }
+        }
 
         // 2. Prova con i servizi proxy con retry limitato
         for (const proxyBuilder of PROXY_SERVICES) {

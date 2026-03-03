@@ -19,17 +19,19 @@ export default function SearchResults({
                         color: 'var(--accent)',
                         fontSize: '1.2rem',
                         letterSpacing: '0.02em',
-                        fontWeight: 600,
+                        fontWeight: 700,
                         marginBottom: '0.25rem',
-                        textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(230, 192, 104, 0.4)'
+                        color: '#1a1333',
+                        textShadow: '0 1px 2px rgba(230, 192, 104, 0.5)'
                     }}>
                         Risultati della Ricerca
                     </h5>
                     <p style={{
-                        color: 'var(--text)',
+                        color: '#2a2d3a',
                         fontSize: '0.9rem',
                         marginBottom: 0,
-                        textShadow: '0 1px 4px rgba(0, 0, 0, 0.8)'
+                        fontWeight: 600,
+                        textShadow: '0 1px 1px rgba(255, 255, 255, 0.5)'
                     }}>
                         Mostrando {displayCount} di {searchResults.length} carte trovate
                     </p>
@@ -38,24 +40,25 @@ export default function SearchResults({
                     className="btn btn-sm"
                     onClick={onClose}
                     style={{
-                        background: 'rgba(34, 24, 64, 0.6)',
-                        color: 'var(--text)',
-                        border: '1px solid rgba(230, 192, 104, 0.3)',
+                        background: 'rgba(26, 19, 51, 0.7)',
+                        color: '#f5f3f0',
+                        border: '1px solid rgba(230, 192, 104, 0.5)',
                         borderRadius: '8px',
                         padding: '0.5rem 1rem',
                         transition: 'all 0.3s ease',
                         cursor: 'pointer',
-                        fontSize: '0.9rem'
+                        fontSize: '0.9rem',
+                        fontWeight: 600
                     }}
                     onMouseEnter={e => {
-                        e.target.style.background = 'rgba(230, 192, 104, 0.2)';
-                        e.target.style.borderColor = 'rgba(230, 192, 104, 0.5)';
-                        e.target.style.color = 'var(--accent)';
+                        e.target.style.background = 'rgba(230, 192, 104, 0.3)';
+                        e.target.style.borderColor = 'rgba(230, 192, 104, 0.7)';
+                        e.target.style.color = '#1a1333';
                     }}
                     onMouseLeave={e => {
-                        e.target.style.background = 'rgba(34, 24, 64, 0.6)';
-                        e.target.style.borderColor = 'rgba(230, 192, 104, 0.3)';
-                        e.target.style.color = 'var(--text)';
+                        e.target.style.background = 'rgba(26, 19, 51, 0.7)';
+                        e.target.style.borderColor = 'rgba(230, 192, 104, 0.5)';
+                        e.target.style.color = '#f5f3f0';
                     }}
                 >
                     Chiudi

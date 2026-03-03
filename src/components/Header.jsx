@@ -44,7 +44,7 @@ export default function Header() {
                 <h1 style={{
                     marginBottom: '0.5rem'
                 }}>
-                    Lorcana Proxy Printer
+                    Babbaluci Proxy Printer
                 </h1>
             </div>
             <p style={{

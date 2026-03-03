@@ -21,26 +21,22 @@ const getImageFormat = () => {
 const SUPPORTED_FORMAT = getImageFormat();
 
 // Proxy services multiple - serve come fallback per diverse regioni e CDN
+// Ordinati per affidabilità e supporto formati (AVIF in primis)
 const PROXY_SERVICES = [
-    // weserv.nl - molto affidabile, buona copertura globale
+    // Cloudinary - f_auto supporta tutti i formati (AVIF, WebP, JPEG)
     url => {
-        const format = SUPPORTED_FORMAT === 'webp' ? '&format=webp' : '';
-        return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=600&h=840&fit=cover&q=85${format}`;
+        return `https://res.cloudinary.com/demo/image/fetch/f_auto,w_600,h_840,c_fill,q_auto/${encodeURIComponent(url)}`;
     },
-    // Cloudinary - backup affidabile con buona velocità
+    // weserv.nl - buona copertura globale ma meno affidabile con AVIF
     url => {
-        const format = SUPPORTED_FORMAT === 'webp' ? 'f_auto' : 'f_jpg';
-        return `https://res.cloudinary.com/demo/image/fetch/${format},w_600,h_840,c_fill,q_auto/${encodeURIComponent(url)}`;
+        return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=600&h=840&fit=cover&q=80`;
     },
+    // weserv.nl - fallback senza format per AVIF
+    url => `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=800&q=80`,
     // AllThumbsUp - servizio proxy alternativo
     url => `https://get-image-now.herokuapp.com/?url=${encodeURIComponent(url)}`,
-    // Image proxy semplice - fallback conservativo
-    url => `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=800&q=80`,
-    // Caricamento diretto con query string per evitare cache
-    url => {
-        const hasQuery = url.includes('?');
-        return `${url}${hasQuery ? '&' : '?'}t=${Date.now()}`;
-    },
+    // CORS proxy generico come ultimo fallback
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
 ];
 
 // Funzione helper per retry con backoff esponenziale
@@ -61,7 +57,7 @@ const retryWithBackoff = async (fn, maxRetries = 4, initialDelay = 1000) => {
     throw lastError;
 };
 
-export const loadImage = async (src, onFail, maxRetries = 3) => {
+export const loadImage = async (src, onFail, maxRetries = 5) => {
     // Controlla cache
     if (imageCache.has(src)) {
         return imageCache.get(src);
@@ -98,39 +94,8 @@ export const loadImage = async (src, onFail, maxRetries = 3) => {
         let lastError = null;
         let totalAttempts = 0;
 
-        // 1. Prova il caricamento diretto usando l'elemento <img>
-        try {
-            console.log(`Tentando caricamento diretto di: ${src}`);
-
-            const attemptLoadDirect = async () => {
-                if (totalAttempts >= maxRetries) {
-                    throw new Error(`Maximum retries (${maxRetries}) exceeded`);
-                }
-                totalAttempts++;
-
-                // loadImageFromUrl usa un timeout interno; qui aggiungiamo un timeout specifico per il tentativo diretto
-                return await Promise.race([
-                    loadImageFromUrl(src),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout diretto')), TIMEOUT_DIRECT))
-                ]);
-            };
-
-            const img = await retryWithBackoff(attemptLoadDirect, Math.min(1, maxRetries - 1), 300);
-
-            // Verifica che l'immagine sia utilizzabile in canvas senza taint (CORS)
-            if (isCanvasSafe(img)) {
-                imageCache.set(src, img);
-                console.log(`✓ Immagine caricata direttamente e CORS-safe: ${src}`);
-                return img;
-            } else {
-                // Forza retry con proxy se l'immagine taints il canvas
-                lastError = new Error('Image taints canvas (no CORS headers)');
-                console.log(`⚠️ Immagine diretta taints il canvas, proverò i proxy: ${src}`);
-            }
-        } catch (err) {
-            lastError = err;
-            console.log(`✗ Caricamento diretto fallito: ${err.message}`);
-        }
+        // Salta il caricamento diretto se il dominio è noto per bloccare CORS
+        // (cards.lorcast.io, scryfall.com, ecc.) - vai direttamente ai proxy
 
         // 2. Prova con i servizi proxy con retry limitato
         for (const proxyBuilder of PROXY_SERVICES) {
@@ -141,7 +106,7 @@ export const loadImage = async (src, onFail, maxRetries = 3) => {
 
             try {
                 const proxyUrl = proxyBuilder(src);
-                console.log(`Tentando proxy: ${proxyUrl.substring(0, 50)}...`);
+                console.log(`Tentando proxy: ${proxyUrl.substring(0, 60)}...`);
 
                 const attemptLoadProxy = async () => {
                     if (totalAttempts >= maxRetries) {
@@ -155,16 +120,12 @@ export const loadImage = async (src, onFail, maxRetries = 3) => {
                     ]);
                 };
 
-                const img = await retryWithBackoff(attemptLoadProxy, Math.min(2, maxRetries - totalAttempts), 400);
+                const img = await retryWithBackoff(attemptLoadProxy, 1, 300);
 
-                if (isCanvasSafe(img)) {
-                    imageCache.set(src, img);
-                    console.log(`✓ Immagine caricata da proxy e CORS-safe`);
-                    return img;
-                } else {
-                    lastError = new Error('Proxy image still taints canvas');
-                    console.log(`✗ Immagine proxy taints il canvas: ${proxyUrl}`);
-                }
+                // Proxy deve fornire CORS headers, procedi con cache
+                imageCache.set(src, img);
+                console.log(`✓ Immagine caricata da proxy`);
+                return img;
             } catch (err) {
                 lastError = err;
                 console.log(`✗ Proxy fallito: ${err.message}`);

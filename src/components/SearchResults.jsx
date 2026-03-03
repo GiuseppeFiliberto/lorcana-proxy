@@ -8,13 +8,13 @@ export default function SearchResults({
     return (
         <div className="search-results-section mt-5" style={{
             background: `
-                linear-gradient(135deg, rgba(34, 24, 64, 0.85) 0%, rgba(26, 19, 51, 0.9) 100%),
+                linear-gradient(135deg, rgba(34, 24, 64, 0.5) 0%, rgba(26, 19, 51, 0.6) 100%),
                 url('/assets/lorcana-parchment.jpg') center center / cover
             `,
             border: '1px solid rgba(230, 192, 104, 0.3)',
             borderRadius: '14px',
             padding: '1.5rem',
-            backdropFilter: 'blur(4px)',
+            backdropFilter: 'blur(2px)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
         }}>
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -24,11 +24,17 @@ export default function SearchResults({
                         fontSize: '1.2rem',
                         letterSpacing: '0.02em',
                         fontWeight: 600,
-                        marginBottom: '0.25rem'
+                        marginBottom: '0.25rem',
+                        textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(230, 192, 104, 0.4)'
                     }}>
                         Risultati della Ricerca
                     </h5>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: 0 }}>
+                    <p style={{
+                        color: 'var(--text)',
+                        fontSize: '0.9rem',
+                        marginBottom: 0,
+                        textShadow: '0 1px 4px rgba(0, 0, 0, 0.8)'
+                    }}>
                         Mostrando {displayCount} di {searchResults.length} carte trovate
                     </p>
                 </div>

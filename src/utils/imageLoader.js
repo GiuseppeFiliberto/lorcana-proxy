@@ -3,6 +3,11 @@
 // Cache per le immagini già caricate
 const imageCache = new Map();
 
+// Alcuni domini richiedono accesso e rispondono sempre 401/403. Basta abbandonare subito.
+const PROTECTED_DOMAINS = ['cards.lorcast.io'];
+const isProtectedUrl = (url) => PROTECTED_DOMAINS.some(d => url.includes(d));
+
+
 // Rate limiter per evitare congestione
 let activeRequests = 0;
 const MAX_CONCURRENT_REQUESTS = 6; // Aumentato a 6 per migliore throughput
@@ -82,6 +87,14 @@ export const loadImage = async (src, onFail, maxRetries = 5) => {
     // Controlla cache
     if (imageCache.has(src)) {
         return imageCache.get(src);
+    }
+
+    // Evita tentativi per risorse note per richiedere autenticazione
+    if (isProtectedUrl(src)) {
+        const err = new Error('Resource is protected and cannot be fetched');
+        console.warn(`Skip loading protected image: ${src}`);
+        if (onFail) onFail({ url: src, reason: 'protected' });
+        throw err;
     }
 
     // Data URLs and blob URLs can be used directly

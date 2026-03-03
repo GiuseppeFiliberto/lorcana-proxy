@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test Parchment</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1333;
+        }
+
+        .test-box {
+            width: 600px;
+            height: 400px;
+            margin: 20px;
+            border: 2px solid gold;
+        }
+
+        .test1 {
+            background-image: url(/assets/lorcana-parchment.jpg);
+            background-size: cover;
+            background-position: center;
+        }
+
+        .test2 {
+            background: linear-gradient(rgba(34, 24, 64, 0.5), rgba(26, 19, 51, 0.6)), url(/assets/lorcana-parchment.jpg);
+            background-size: cover;
+            background-position: center;
+        }
+
+        h2 {
+            color: white;
+            font-family: Arial;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Test 1: Solo immagine</h2>
+    <div class="test-box test1"></div>
+
+    <h2>Test 2: Immagine con gradient</h2>
+    <div class="test-box test2"></div>
+
+    <h2>Test 3: Immagine diretta</h2>
+    <img src="/assets/lorcana-parchment.jpg" style="max-width: 600px; border: 2px solid gold;" />
+</body>
+
+</html>

@@ -243,28 +243,6 @@ a:hover {
     margin-bottom: var(--spacing-2xl);
 }
 
-.header-panel::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(230, 192, 104, 0.1) 0%, transparent 70%);
-    animation: gentleRotate 20s linear infinite;
-    pointer-events: none;
-}
-
-@keyframes gentleRotate {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-}
-
 .header-panel h1 {
     font-size: 2.75rem;
     font-weight: 700;
@@ -1018,34 +996,6 @@ ch Results Styling */
     box-shadow: 0 4px 12px rgba(255, 107, 107, 0.5);
 }
 
-/*
- Footer Styling */
-.app-footer {
-    margin-top: 4rem;
-    padding: 2rem 0;
-    text-align: center;
-    border-top: 1px solid rgba(155, 126, 255, 0.2);
-    background: linear-gradient(180deg, transparent 0%, rgba(155, 126, 255, 0.05) 100%);
-}
-
-.app-footer p {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-}
-
-.app-footer a {
-    color: #FFD166;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.app-footer a:hover {
-    color: #9B7EFF;
-    text-shadow: 0 0 10px rgba(155, 126, 255, 0.5);
-}
-
 /* Alert Styling */
 .alert {
     border-radius: var(--radius-lg) !important;
@@ -1069,7 +1019,10 @@ ch Results Styling */
 er Styling */
 .app-footer {
     margin-top: 4rem;
-    padding: 2.5rem 0;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    padding: 2.5rem 1rem;
+    width: 100vw;
     text-align: center;
     border-top: 1px solid rgba(155, 126, 220, 0.3);
     background: linear-gradient(180deg, transparent 0%, rgba(155, 126, 220, 0.08) 100%);

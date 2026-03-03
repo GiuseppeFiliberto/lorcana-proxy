@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Caricamento Immagini</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .test-image {
+            margin: 20px 0;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+
+        img {
+            max-width: 300px;
+            border: 2px solid #4a4a4a;
+            border-radius: 8px;
+        }
+
+        .log {
+            background: #000;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .success {
+            color: #4ade80;
+        }
+
+        .error {
+            color: #f87171;
+        }
+
+        .info {
+            color: #60a5fa;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test-container">
+        <h1>Test Caricamento Immagini Lorcana</h1>
+
+        <div class="test-image">
+            <h3>Test 1: Immagine AVIF diretta</h3>
+            <img id="test1" crossorigin="anonymous" />
+            <div class="log" id="log1"></div>
+        </div>
+
+        <div class="test-image">
+            <h3>Test 2: Immagine tramite Proxy wsrv.nl</h3>
+            <img id="test2" crossorigin="anonymous" />
+            <div class="log" id="log2"></div>
+        </div>
+
+        <div class="test-image">
+            <h3>Test 3: Immagine tramite Proxy corsproxy.io</h3>
+            <img id="test3" crossorigin="anonymous" />
+            <div class="log" id="log3"></div>
+        </div>
+    </div>
+
+    <script>
+        const originalUrl = 'https://cards.lorcast.io/card/digital/normal/crd_a6f3c215973844fc8ae5cbc2a4ea388f.avif?1770259762';
+
+        function log(id, message, type = 'info') {
+            const logEl = document.getElementById(id);
+            const span = document.createElement('div');
+            span.className = type;
+            span.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logEl.appendChild(span);
+        }
+
+        // Test 1: Caricamento diretto
+        const img1 = document.getElementById('test1');
+        log('log1', 'Tentando caricamento diretto...', 'info');
+        img1.onload = () => {
+            log('log1', `✓ Immagine caricata! Dimensioni: ${img1.naturalWidth}x${img1.naturalHeight}`, 'success');
+
+            // Test canvas safety
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 10;
+                canvas.height = 10;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img1, 0, 0, 10, 10);
+                canvas.toDataURL();
+                log('log1', '✓ Immagine canvas-safe (CORS OK)', 'success');
+            } catch (e) {
+                log('log1', '✗ Immagine NON canvas-safe (CORS problema): ' + e.message, 'error');
+            }
+        };
+        img1.onerror = (e) => {
+            log('log1', '✗ Errore caricamento: ' + e.message, 'error');
+        };
+        img1.src = originalUrl;
+
+        // Test 2: Proxy wsrv.nl
+        const img2 = document.getElementById('test2');
+        const proxyUrl1 = `https://wsrv.nl/?url=${encodeURIComponent(originalUrl)}&w=800&output=jpg&q=85`;
+        log('log2', 'Tentando caricamento tramite wsrv.nl...', 'info');
+        log('log2', 'URL: ' + proxyUrl1.substring(0, 100) + '...', 'info');
+        img2.onload = () => {
+            log('log2', `✓ Immagine caricata! Dimensioni: ${img2.naturalWidth}x${img2.naturalHeight}`, 'success');
+        };
+        img2.onerror = (e) => {
+            log('log2', '✗ Errore caricamento proxy', 'error');
+        };
+        img2.src = proxyUrl1;
+
+        // Test 3: Proxy corsproxy.io
+        const img3 = document.getElementById('test3');
+        const proxyUrl2 = `https://corsproxy.io/?${encodeURIComponent(originalUrl)}`;
+        log('log3', 'Tentando caricamento tramite corsproxy.io...', 'info');
+        log('log3', 'URL: ' + proxyUrl2.substring(0, 100) + '...', 'info');
+        img3.onload = () => {
+            log('log3', `✓ Immagine caricata! Dimensioni: ${img3.naturalWidth}x${img3.naturalHeight}`, 'success');
+        };
+        img3.onerror = (e) => {
+            log('log3', '✗ Errore caricamento proxy', 'error');
+        };
+        img3.src = proxyUrl2;
+    </script>
+</body>
+
+</html>

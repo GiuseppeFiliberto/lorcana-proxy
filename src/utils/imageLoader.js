@@ -4,7 +4,7 @@
 const imageCache = new Map();
 
 // Alcuni domini richiedono accesso e rispondono sempre 401/403. Basta abbandonare subito.
-const PROTECTED_DOMAINS = ['cards.lorcast.io'];
+const PROTECTED_DOMAINS = []; // Rimosso cards.lorcast.io - proviamo a caricarlo
 const isProtectedUrl = (url) => PROTECTED_DOMAINS.some(d => url.includes(d));
 
 
@@ -13,8 +13,8 @@ let activeRequests = 0;
 const MAX_CONCURRENT_REQUESTS = 6; // Aumentato a 6 per migliore throughput
 
 // Timeout per caricamento diretto: ha priorità bassa, fallisce velocemente per usare proxy
-const TIMEOUT_DIRECT = 5000; // 5s - per caricamento diretto (fail-fast)
-const TIMEOUT_PROXY = 30000;  // 30s - per servizi proxy (con retry + backoff)
+const TIMEOUT_DIRECT = 8000; // 8s - per caricamento diretto (aumentato per AVIF)
+const TIMEOUT_PROXY = 20000;  // 20s - per servizi proxy (ridotto per velocità)
 
 // Rileva supporto WebP e AVIF
 const getImageFormat = () => {
@@ -28,30 +28,31 @@ const SUPPORTED_FORMAT = getImageFormat();
 // Proxy services multiple - serve come fallback per diverse regioni e CDN
 // Ordinati per affidabilità e supporto formati (AVIF in primis)
 const PROXY_SERVICES = [
+    // wsrv.nl con output=jpg per garantire compatibilità (converte AVIF in JPG)
+    url => `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=800&output=jpg&q=85`,
     // Cloudinary - f_auto supporta tutti i formati (AVIF, WebP, JPEG)
-    url => {
-        return `https://res.cloudinary.com/demo/image/fetch/f_auto,w_600,h_840,c_fill,q_auto/${encodeURIComponent(url)}`;
-    },
-    // weserv.nl - buona copertura globale ma meno affidabile con AVIF
-    url => {
-        return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=600&h=840&fit=cover&q=80`;
-    },
-    // weserv.nl - fallback senza format per AVIF
-    url => `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=800&q=80`,
-    // AllThumbsUp - servizio proxy alternativo
-    url => `https://get-image-now.herokuapp.com/?url=${encodeURIComponent(url)}`,
+    url => `https://res.cloudinary.com/demo/image/fetch/f_auto,w_600,h_840,c_fill,q_auto/${encodeURIComponent(url)}`,
+    // weserv.nl - buona copertura globale
+    url => `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=800&output=jpg&q=85`,
     // CORS proxy generico come ultimo fallback
     url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
 ];
 
 // Genera varianti URL fallback per diverse estensioni/formati
 const getURLVariants = (url) => {
-    const variants = [url]; // Original first
+    const variants = [url]; // Original first - prova sempre l'originale
 
-    // Se l'URL contiene AVIF, prova anche JPEG (cards.lorcast.io potrebbe bloccare AVIF ma non JPEG)
+    // Per cards.lorcast.io, l'URL originale è l'unico valido (supporta solo il formato specificato)
+    // Non creare varianti per questo dominio
+    if (url.includes('cards.lorcast.io')) {
+        return variants;
+    }
+
+    // Per altri domini, prova varianti di formato
     if (url.includes('.avif')) {
         variants.push(url.replace(/\.avif/gi, '.jpg'));
         variants.push(url.replace(/\.avif/gi, '.jpeg'));
+        variants.push(url.replace(/\.avif/gi, '.png'));
     }
 
     // Se è JPEG, prova anche con i parametri rimossi per alcune CDN
@@ -134,7 +135,7 @@ export const loadImage = async (src, onFail, maxRetries = 5) => {
             if (totalAttempts >= maxRetries) break;
 
             try {
-                console.log(`Tentando caricamento diretto: ${variant.substring(0, 60)}...`);
+                console.log(`[Direct ${totalAttempts + 1}/${maxRetries}] Tentando: ${variant.substring(0, 80)}...`);
                 totalAttempts++;
 
                 const img = await Promise.race([
@@ -145,15 +146,16 @@ export const loadImage = async (src, onFail, maxRetries = 5) => {
                 // Verifica che l'immagine sia utilizzabile su canvas
                 if (isCanvasSafe(img)) {
                     imageCache.set(src, img);
-                    console.log(`✓ Immagine caricata direttamente`);
+                    console.log(`[Direct] ✓ Immagine caricata direttamente (${img.width}x${img.height})`);
                     return img;
                 } else {
-                    console.log(`✗ Immagine caricata ma non canvas-safe (CORS), provo proxy`);
+                    console.log(`[Direct] ✗ Immagine caricata ma non canvas-safe (CORS), provo proxy`);
+                    lastError = new Error('CORS issue - image tainted canvas');
                     break; // Esci dal loop delle varianti e vai ai proxy
                 }
             } catch (err) {
                 lastError = err;
-                console.log(`✗ Caricamento diretto fallito: ${err.message}`);
+                console.log(`[Direct] ✗ Fallito: ${err.message}`);
             }
         }
 
@@ -166,7 +168,7 @@ export const loadImage = async (src, onFail, maxRetries = 5) => {
 
             try {
                 const proxyUrl = proxyBuilder(src);
-                console.log(`Tentando proxy: ${proxyUrl.substring(0, 60)}...`);
+                console.log(`[Proxy ${totalAttempts + 1}/${maxRetries}] Tentando: ${proxyUrl.substring(0, 80)}...`);
 
                 const attemptLoadProxy = async () => {
                     if (totalAttempts >= maxRetries) {
@@ -184,11 +186,11 @@ export const loadImage = async (src, onFail, maxRetries = 5) => {
 
                 // Proxy deve fornire CORS headers, procedi con cache
                 imageCache.set(src, img);
-                console.log(`✓ Immagine caricata da proxy`);
+                console.log(`[Proxy] ✓ Immagine caricata da proxy (${img.width}x${img.height})`);
                 return img;
             } catch (err) {
                 lastError = err;
-                console.log(`✗ Proxy fallito: ${err.message}`);
+                console.log(`[Proxy] ✗ Fallito: ${err.message}`);
             }
         }
 

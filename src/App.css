@@ -91,7 +91,9 @@ body,
 body {
     margin: 0;
     font-family: var(--font-primary);
-    background: url(/assets/lorcana-nebula.jpg) center center / cover no-repeat fixed;
+    background:
+        radial-gradient(ellipse at top, rgba(47, 36, 86, 0.3) 0%, rgba(26, 19, 51, 0.4) 50%, rgba(13, 8, 32, 0.5) 100%),
+        url(/assets/lorcana-nebula.jpg) center center / cover no-repeat fixed;
     color: var(--text);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -230,14 +232,14 @@ a:hover {
 }
 
 .header-panel {
-    background: linear-gradient(135deg, rgba(155, 126, 220, 0.15) 0%, rgba(34, 24, 64, 0.8) 100%);
+    background: transparent;
     padding: var(--spacing-2xl) var(--spacing-xl);
     border-radius: var(--radius-lg);
-    border: 1px solid rgba(230, 192, 104, 0.3);
+    border: none;
     text-align: center;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: none;
     margin-bottom: var(--spacing-2xl);
 }
 
@@ -317,12 +319,12 @@ a:hover {
 }
 
 .search-panel {
-    background: var(--glass-light);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(34, 24, 64, 0.85);
+    border: 1px solid rgba(230, 192, 104, 0.3);
     border-radius: var(--radius-lg);
     padding: var(--spacing-xl);
     margin-bottom: var(--spacing-xl);
-    box-shadow: var(--shadow-2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     overflow: visible !important;
     position: relative;
 }
@@ -502,12 +504,12 @@ a:hover {
 }
 
 .cards-panel {
-    background: var(--glass-light);
+    background: rgba(34, 24, 64, 0.85);
     border-radius: var(--radius-lg);
     padding: var(--spacing-xl);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(230, 192, 104, 0.3);
     margin-bottom: var(--spacing-xl);
-    box-shadow: var(--shadow-2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .cards-panel h5 {

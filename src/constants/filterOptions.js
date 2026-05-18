@@ -41,7 +41,9 @@ export const SET_OPTIONS = [
     { value: '8', label: '8 - Reign of Jafar' },
     { value: '9', label: '9 - Fabled' },
     { value: '10', label: '10 - Whispers in the Well' },
-    { value: '11', label: '11 - Winterspell' }
+    { value: '11', label: '11 - Winterspell' },
+    { value: '12', label: '12 - Wilds Unknown' }
+
 
 ];
 

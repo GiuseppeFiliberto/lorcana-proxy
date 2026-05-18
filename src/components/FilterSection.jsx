@@ -32,7 +32,7 @@ export default function FilterSection({
         <div className="filters-section" style={{
             marginTop: '1.5rem',
             padding: '1rem',
-            background: 'linear-gradient(135deg, rgba(96, 165, 250, 0.08) 0%, rgba(129, 140, 248, 0.06) 100%)',
+            //background: 'linear-gradient(135deg, rgba(96, 165, 250, 0.08) 0%, rgba(129, 140, 248, 0.06) 100%)',//
             borderRadius: '12px',
             border: '1px solid rgba(96, 165, 250, 0.15)',
             marginBottom: '0.5rem',
@@ -52,7 +52,7 @@ export default function FilterSection({
                 </h6>
                 {activeFiltersCount > 0 && (
                     <span style={{
-                        background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%)',
+                        //background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%)',
                         color: 'var(--bg-1)',
                         padding: '0.25rem 0.75rem',
                         borderRadius: '20px',
@@ -133,7 +133,7 @@ export default function FilterSection({
                         className="btn btn-sm"
                         onClick={resetFilters}
                         style={{
-                            background: 'rgba(255, 255, 255, 0.1)',
+                            // background: 'rgba(255, 255, 255, 0.1)',
                             color: 'var(--text-secondary)',
                             border: '1px solid rgba(255, 255, 255, 0.2)',
                             borderRadius: '8px',

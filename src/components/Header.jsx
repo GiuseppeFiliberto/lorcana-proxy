@@ -1,27 +1,7 @@
 export default function Header() {
     return (
         <div className="header-panel" style={{ textAlign: 'center', position: 'relative' }}>
-            {/* Decorative menu image */}
-            <div style={{
-                position: 'absolute',
-                top: '-20px',
-                right: '20px',
-                width: '120px',
-                height: 'auto',
-                opacity: 0.6,
-                pointerEvents: 'none',
-                zIndex: 0
-            }}>
-                <img
-                    src="/assets/lorcana-menu.jpg"
-                    alt=""
-                    style={{
-                        width: '100%',
-                        height: 'auto',
-                        filter: 'drop-shadow(0 4px 12px rgba(230, 192, 104, 0.3))'
-                    }}
-                />
-            </div>
+
 
             <div style={{
                 display: 'flex',
@@ -38,7 +18,7 @@ export default function Header() {
                     style={{
                         width: '180px',
                         height: 'auto',
-                        filter: 'drop-shadow(0 4px 16px rgba(230, 192, 104, 0.3))'
+                        //filter: 'drop-shadow(0 4px 16px rgba(230, 192, 104, 0.3))'
                     }}
                 />
                 <h1 style={{

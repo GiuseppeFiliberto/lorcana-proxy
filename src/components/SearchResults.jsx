@@ -7,25 +7,32 @@ export default function SearchResults({
 }) {
     return (
         <div className="search-results-section mt-5" style={{
-            background: 'linear-gradient(135deg, rgba(123, 97, 255, 0.06) 0%, rgba(255, 209, 102, 0.04) 100%)',
-            border: '1px solid rgba(123, 97, 255, 0.12)',
+            border: '1px solid rgba(230, 192, 104, 0.3)',
             borderRadius: '14px',
             padding: '1.5rem',
-            backdropFilter: 'blur(8px)'
+            backdropFilter: 'blur(2px)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
         }}>
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h5 style={{
-                        color: 'var(--accent-light)',
-                        fontSize: '1.1rem',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        fontWeight: 600,
-                        marginBottom: '0.25rem'
+                        color: 'var(--accent)',
+                        fontSize: '1.2rem',
+                        letterSpacing: '0.02em',
+                        fontWeight: 700,
+                        marginBottom: '0.25rem',
+                        color: '#1a1333',
+                        textShadow: '0 1px 2px rgba(230, 192, 104, 0.5)'
                     }}>
                         Risultati della Ricerca
                     </h5>
-                    <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginBottom: 0 }}>
+                    <p style={{
+                        color: '#2a2d3a',
+                        fontSize: '0.9rem',
+                        marginBottom: 0,
+                        fontWeight: 600,
+                        textShadow: '0 1px 1px rgba(255, 255, 255, 0.5)'
+                    }}>
                         Mostrando {displayCount} di {searchResults.length} carte trovate
                     </p>
                 </div>
@@ -33,27 +40,28 @@ export default function SearchResults({
                     className="btn btn-sm"
                     onClick={onClose}
                     style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        color: 'var(--text-secondary)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        background: 'rgba(26, 19, 51, 0.7)',
+                        color: '#f5f3f0',
+                        border: '1px solid rgba(230, 192, 104, 0.5)',
                         borderRadius: '8px',
                         padding: '0.5rem 1rem',
                         transition: 'all 0.3s ease',
                         cursor: 'pointer',
-                        fontSize: '0.9rem'
+                        fontSize: '0.9rem',
+                        fontWeight: 600
                     }}
                     onMouseEnter={e => {
-                        e.target.style.background = 'rgba(255, 209, 102, 0.2)';
-                        e.target.style.borderColor = 'rgba(255, 209, 102, 0.4)';
-                        e.target.style.color = 'var(--accent)';
+                        e.target.style.background = 'rgba(230, 192, 104, 0.3)';
+                        e.target.style.borderColor = 'rgba(230, 192, 104, 0.7)';
+                        e.target.style.color = '#1a1333';
                     }}
                     onMouseLeave={e => {
-                        e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-                        e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                        e.target.style.color = 'var(--text-secondary)';
+                        e.target.style.background = 'rgba(26, 19, 51, 0.7)';
+                        e.target.style.borderColor = 'rgba(230, 192, 104, 0.5)';
+                        e.target.style.color = '#f5f3f0';
                     }}
                 >
-                    ✕ Chiudi
+                    Chiudi
                 </button>
             </div>
 
@@ -84,8 +92,8 @@ export default function SearchResults({
                                     onClick={() => onAddCard(card)}
                                     onMouseEnter={e => {
                                         e.currentTarget.style.transform = 'translateY(-8px) scale(1.03)';
-                                        e.currentTarget.style.boxShadow = '0 12px 32px rgba(255, 209, 102, 0.2), 0 0 20px rgba(255, 209, 102, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.15)';
-                                        e.currentTarget.style.borderColor = 'rgba(255, 209, 102, 0.4)';
+                                        e.currentTarget.style.boxShadow = '0 12px 32px rgba(230, 192, 104, 0.3), 0 0 20px rgba(230, 192, 104, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15)';
+                                        e.currentTarget.style.borderColor = 'rgba(230, 192, 104, 0.5)';
                                     }}
                                     onMouseLeave={e => {
                                         e.currentTarget.style.transform = 'translateY(0)';
@@ -118,25 +126,25 @@ export default function SearchResults({
                                 className="btn"
                                 onClick={() => setDisplayCount(displayCount + 24)}
                                 style={{
-                                    background: 'linear-gradient(135deg, rgba(255, 209, 102, 0.2) 0%, rgba(123, 97, 255, 0.15) 100%)',
-                                    color: 'var(--accent)',
-                                    border: '1.5px solid rgba(255, 209, 102, 0.4)',
+                                    background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%)',
+                                    color: '#1a1333',
+                                    border: '1px solid var(--accent-light)',
                                     borderRadius: '10px',
                                     padding: '0.75rem 1.5rem',
                                     fontSize: '0.95rem',
-                                    fontWeight: 500,
+                                    fontWeight: 600,
                                     transition: 'all 0.3s ease',
                                     cursor: 'pointer',
-                                    letterSpacing: '0.3px'
+                                    boxShadow: '0 4px 16px rgba(230, 192, 104, 0.4)'
                                 }}
                                 onMouseEnter={e => {
-                                    e.target.style.background = 'linear-gradient(135deg, rgba(255, 209, 102, 0.3) 0%, rgba(123, 97, 255, 0.2) 100%)';
-                                    e.target.style.boxShadow = '0 8px 24px rgba(255, 209, 102, 0.2)';
+                                    e.target.style.background = 'linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%)';
+                                    e.target.style.boxShadow = '0 6px 24px rgba(230, 192, 104, 0.6)';
                                     e.target.style.transform = 'translateY(-2px)';
                                 }}
                                 onMouseLeave={e => {
-                                    e.target.style.background = 'linear-gradient(135deg, rgba(255, 209, 102, 0.2) 0%, rgba(123, 97, 255, 0.15) 100%)';
-                                    e.target.style.boxShadow = 'none';
+                                    e.target.style.background = 'linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%)';
+                                    e.target.style.boxShadow = '0 4px 16px rgba(230, 192, 104, 0.4)';
                                     e.target.style.transform = 'translateY(0)';
                                 }}
                             >
@@ -147,7 +155,6 @@ export default function SearchResults({
                 </>
             ) : (
                 <div className="text-center py-5">
-                    <div style={{ fontSize: '56px', marginBottom: '1rem', opacity: 0.8 }}></div>
                     <h6 style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '1.05rem', fontWeight: 600 }}>
                         Nessuna carta trovata
                     </h6>

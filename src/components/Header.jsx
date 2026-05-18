@@ -1,34 +1,37 @@
 export default function Header() {
     return (
-        <div className="header-panel" style={{ textAlign: 'center' }}>
+        <div className="header-panel" style={{ textAlign: 'center', position: 'relative' }}>
+
+
             <div style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 gap: '1rem',
-                marginBottom: '1.5rem'
+                marginBottom: '1rem',
+                position: 'relative',
+                zIndex: 1
             }}>
                 <img
                     src="/logo.png"
                     alt="Gli Incantababbaluci Logo"
                     style={{
-                        width: '200px',
+                        width: '180px',
                         height: 'auto',
-                        filter: 'drop-shadow(0 4px 12px rgba(96, 165, 250, 0.4))',
-                        animation: 'float 3s ease-in-out infinite'
+                        //filter: 'drop-shadow(0 4px 16px rgba(230, 192, 104, 0.3))'
                     }}
                 />
-                <h1 className="display-4 fw-bold" style={{
-                    color: '#ffffff',
-                    marginBottom: '0.5rem',
-                    textShadow: '0 0 30px rgba(96, 165, 250, 0.5), 0 0 60px rgba(129, 140, 248, 0.3)'
+                <h1 style={{
+                    marginBottom: '0.5rem'
                 }}>
-                    Proxy Printer
+                    Babbaluci Proxy Printer
                 </h1>
             </div>
-            <p className="lead" style={{
-                color: '#ffffff',
-                fontSize: '1.1rem'
+            <p style={{
+                fontSize: '1.05rem',
+                fontStyle: 'italic',
+                position: 'relative',
+                zIndex: 1
             }}>
                 Crea e stampa le tue carte proxy personalizzate
             </p>

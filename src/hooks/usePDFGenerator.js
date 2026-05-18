@@ -38,7 +38,7 @@ export const usePDFGenerator = () => {
 
         // Warn if there are many cards (potential for timeout)
         if (cards.length > 50) {
-            toast.warn('⚠️ Stai generando un PDF con molte carte. Potrebbe richiedere del tempo. Se hai problemi di caricamento, prova con meno carte alla volta.', {
+            toast.warn('Stai generando un PDF con molte carte. Potrebbe richiedere del tempo. Se hai problemi di caricamento, prova con meno carte alla volta.', {
                 autoClose: 6000
             });
         }
@@ -66,7 +66,7 @@ export const usePDFGenerator = () => {
                 setIsRendering(false);
                 setProgress(0);
                 setEta(null);
-                toast.error('⏰ Generazione PDF interrotta: timeout di 5 minuti superato. Alcuni utenti potrebbero avere problemi di connessione alle immagini. Riprova con meno carte o usa una connessione più stabile.', {
+                toast.error('Generazione PDF interrotta: timeout di 5 minuti superato. Alcuni utenti potrebbero avere problemi di connessione alle immagini. Riprova con meno carte o usa una connessione più stabile.', {
                     autoClose: 8000,
                     position: "top-center"
                 });
@@ -206,10 +206,10 @@ export const usePDFGenerator = () => {
                                 allImages[idx] = retryImg;
                                 loadedCount++;
                                 retryCount++;
-                                console.log(`[Retry] ✓ Immagine ${idx} caricata`);
+                                console.log(`[Retry] Immagine ${idx} caricata`);
                             }
                         } catch (e) {
-                            console.log(`[Retry] ✗ Immagine ${idx}: ${e.message}`);
+                            console.log(`[Retry] Immagine ${idx}: ${e.message}`);
                         }
                     }
 
@@ -396,7 +396,7 @@ export const usePDFGenerator = () => {
                 errorMessage = 'Problema di accesso alle immagini. Alcuni browser bloccano il caricamento di immagini da fonti esterne.';
             }
 
-            toast.error(`❌ ${errorMessage} Riprova più tardi o contatta il supporto se il problema persiste.`, {
+            toast.error(`${errorMessage} Riprova più tardi o contatta il supporto se il problema persiste.`, {
                 autoClose: 10000,
                 position: "top-center"
             });

@@ -42,7 +42,9 @@ export const SET_OPTIONS = [
     { value: '9', label: '9 - Fabled' },
     { value: '10', label: '10 - Whispers in the Well' },
     { value: '11', label: '11 - Winterspell' },
-    { value: '12', label: '12 - Wilds Unknown' }
+    { value: '12', label: '12 - Wilds Unknown' },
+    { value: '12', label: '13 - Attack of the vyne' }
+
 
 
 ];
@@ -53,5 +55,7 @@ export const RARITY_OPTIONS = [
     { value: 'Uncommon', label: 'Uncommon' },
     { value: 'Rare', label: 'Rare' },
     { value: 'Super_rare', label: 'Super Rare' },
-    { value: 'Legendary', label: 'Legendary' }
+    { value: 'Legendary', label: 'Legendary' },
+    { value: 'Enchanted', label: 'Enchanted' }
+
 ];

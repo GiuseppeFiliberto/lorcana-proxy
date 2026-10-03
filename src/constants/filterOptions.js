@@ -43,7 +43,8 @@ export const SET_OPTIONS = [
     { value: '10', label: '10 - Whispers in the Well' },
     { value: '11', label: '11 - Winterspell' },
     { value: '12', label: '12 - Wilds Unknown' },
-    { value: '13', label: '13 - Attack of the vyne' }
+    { value: '13', label: '13 - Attack of the vyne' },
+    { value: '13', label: '14 - Hyperia City' }
 
 
 
